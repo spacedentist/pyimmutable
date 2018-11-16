@@ -33,4 +33,7 @@ template <typename F>
 OnDestroy(F &&)->OnDestroy<std::decay_t<F>>;
 
 } // namespace
+
+bool isImmutableJsonObject(PyObject*);
+
 } // namespace pyimmutable

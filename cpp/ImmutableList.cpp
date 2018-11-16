@@ -19,6 +19,7 @@ struct ListItem {
   PyObjectRef value;
   Sha1Hash valueHash;
   Sha1Hash itemHash;
+  bool isImmutableJson;
 };
 
 using VectorType = immer::vector<ListItem>;
@@ -58,9 +59,15 @@ struct ImmutableList {
 
   struct State {
     VectorType const vec;
-    Sha1Hash const sha1{0};
+    Sha1Hash const sha1;
+    std::size_t immutableJsonItems;
+    bool isImmutableJson;
 
-    State(VectorType&& vec, Sha1Hash sha1) : vec(std::move(vec)), sha1(sha1) {}
+    State(VectorType&& vecx, Sha1Hash sha1, std::size_t immutable_json_items)
+        : vec(std::move(vecx)),
+          sha1(sha1),
+          immutableJsonItems(immutable_json_items),
+          isImmutableJson(immutableJsonItems == vec.size()) {}
   };
   union {
     State state;
@@ -126,14 +133,20 @@ struct ImmutableList {
       }
 
       Sha1Hash hash{0};
+      std::size_t immutable_json_items = 0;
       for (auto it = state.vec.begin(); start < stop; ++start, ++it) {
         xorHashInPlace(hash, it->itemHash);
+        if (it->isImmutableJson) {
+          ++immutable_json_items;
+        }
       }
 
-      return getOrCreate(hash, [&]() { return state.vec.take(length); });
+      return getOrCreate(
+          hash, [&]() { return state.vec.take(length); }, immutable_json_items);
     }
 
     Sha1Hash hash{0};
+    std::size_t immutable_json_items = 0;
     std::vector<Sha1Hash> item_hashes;
     item_hashes.reserve(length);
 
@@ -142,18 +155,27 @@ struct ImmutableList {
       auto item_hash = itemHash(src_item.valueHash, i);
       item_hashes.push_back(item_hash);
       xorHashInPlace(hash, item_hash);
+      if (src_item.isImmutableJson) {
+        ++immutable_json_items;
+      }
     }
 
-    return getOrCreate(hash, [&]() {
-      TransientVectorType tvec;
-      for (Py_ssize_t i = 0; i < length; ++i) {
-        auto const& src_item = state.vec[start + i * step];
-        auto const& item_hash = item_hashes[i];
-        tvec.push_back(ListItem{src_item.value, src_item.valueHash, item_hash});
-      }
+    return getOrCreate(
+        hash,
+        [&]() {
+          TransientVectorType tvec;
+          for (Py_ssize_t i = 0; i < length; ++i) {
+            auto const& src_item = state.vec[start + i * step];
+            auto const& item_hash = item_hashes[i];
+            tvec.push_back(ListItem{src_item.value,
+                                    src_item.valueHash,
+                                    item_hash,
+                                    src_item.isImmutableJson});
+          }
 
-      return std::move(tvec).persistent();
-    });
+          return std::move(tvec).persistent();
+        },
+        immutable_json_items);
   }
 
   PyObject* set(PyObject* args) noexcept {
@@ -182,13 +204,21 @@ struct ImmutableList {
     auto const hitem = itemHash(hvalue, idx);
     auto const vec_hash =
         xorHash(xorHash(state.sha1, src_item.itemHash), hitem);
+    bool const is_immutable_json = isImmutableJsonObject(value);
+    auto const immutable_json_items = state.immutableJsonItems -
+        (src_item.isImmutableJson ? 1 : 0) + (is_immutable_json ? 1 : 0);
 
     return getOrCreate(
                vec_hash,
                [&]() {
                  return state.vec.set(
-                     idx, ListItem{PyObjectRef{value}, hvalue, hitem});
-               })
+                     idx,
+                     ListItem{PyObjectRef{value},
+                              hvalue,
+                              hitem,
+                              immutable_json_items});
+               },
+               immutable_json_items)
         .release();
   }
 
@@ -196,13 +226,17 @@ struct ImmutableList {
     auto const hvalue = valueHash(value);
     auto const hitem = itemHash(hvalue, state.vec.size());
     auto vec_hash = xorHash(state.sha1, hitem);
+    bool const is_immutable_json = isImmutableJsonObject(value);
+    auto const immutable_json_items =
+        state.immutableJsonItems + (is_immutable_json ? 1 : 0);
 
     return getOrCreate(
                vec_hash,
                [&]() {
-                 return state.vec.push_back(
-                     ListItem{PyObjectRef{value}, hvalue, hitem});
-               })
+                 return state.vec.push_back(ListItem{
+                     PyObjectRef{value}, hvalue, hitem, is_immutable_json});
+               },
+               immutable_json_items)
         .release();
   }
 
@@ -260,11 +294,15 @@ struct ImmutableList {
 
                  auto it = item_hashes.begin();
                  for (auto const& item : rhs.state.vec) {
-                   tvec.push_back(ListItem{item.value, item.valueHash, *it++});
+                   tvec.push_back(ListItem{item.value,
+                                           item.valueHash,
+                                           *it++,
+                                           item.isImmutableJson});
                  }
 
                  return std::move(tvec).persistent();
-               })
+               },
+               state.immutableJsonItems + rhs.state.immutableJsonItems)
         .release();
   }
 
@@ -297,13 +335,16 @@ struct ImmutableList {
                  auto it = item_hashes.begin();
                  for (Py_ssize_t c = 1; c < count; ++c) {
                    for (auto const& item : state.vec) {
-                     tvec.push_back(
-                         ListItem{item.value, item.valueHash, *it++});
+                     tvec.push_back(ListItem{item.value,
+                                             item.valueHash,
+                                             *it++,
+                                             item.isImmutableJson});
                    }
                  }
 
                  return std::move(tvec).persistent();
-               })
+               },
+               state.immutableJsonItems * count)
         .release();
   }
 
@@ -373,10 +414,15 @@ struct ImmutableList {
     return result.release();
   }
 
+  PyObject* isImmutableJsonList(void* /* unused */) {
+    return PyObjectRef(state.isImmutableJson ? Py_True : Py_False).release();
+  }
+
   template <typename F>
   static TypedPyObjectRef<ImmutableList> getOrCreate(
       Sha1Hash hash,
-      F&& vec_factory) {
+      F&& vec_factory,
+      std::size_t immutable_json_items) {
     auto it = lookUpMap.find(hash);
     if (it != lookUpMap.end()) {
       return TypedPyObjectRef{it->second};
@@ -387,7 +433,7 @@ struct ImmutableList {
 
     if (obj) {
       new (std::addressof(obj->state))
-          State(std::forward<F>(vec_factory)(), hash);
+          State(std::forward<F>(vec_factory)(), hash, immutable_json_items);
       obj->hasState = true;
 
       try {
@@ -403,7 +449,7 @@ struct ImmutableList {
   }
 
   static TypedPyObjectRef<ImmutableList> makeEmpty() {
-    return getOrCreate({}, []() { return VectorType{}; });
+    return getOrCreate({}, []() { return VectorType{}; }, 0);
   }
 
   static PyObject* new_(PyTypeObject* type, PyObject* args, PyObject* kwds) {
@@ -418,12 +464,15 @@ struct ImmutableList {
 
     if (arg) {
       Sha1Hash vec_hash{0};
+      std::size_t immutable_json_items = 0;
       TransientVectorType tvec;
-      if (!extendCommon(vec_hash, tvec, arg)) {
+      if (!extendCommon(vec_hash, immutable_json_items, tvec, arg)) {
         return nullptr;
       }
       return getOrCreate(
-                 vec_hash, [&]() { return std::move(tvec).persistent(); })
+                 vec_hash,
+                 [&]() { return std::move(tvec).persistent(); },
+                 immutable_json_items)
           .release();
     } else {
       return makeEmpty().release();
@@ -438,16 +487,23 @@ struct ImmutableList {
     }
 
     auto vec_hash = state.sha1;
+    auto immutable_json_items = state.immutableJsonItems;
     auto tvec = state.vec.transient();
-    if (!extendCommon(vec_hash, tvec, seq)) {
+    if (!extendCommon(vec_hash, immutable_json_items, tvec, seq)) {
       return nullptr;
     }
-    return getOrCreate(vec_hash, [&]() { return std::move(tvec).persistent(); })
+    return getOrCreate(
+               vec_hash,
+               [&]() { return std::move(tvec).persistent(); },
+               immutable_json_items)
         .release();
   }
 
-  static bool
-  extendCommon(Sha1Hash& hash, TransientVectorType& tvec, PyObject* arg) {
+  static bool extendCommon(
+      Sha1Hash& hash,
+      std::size_t& immutable_json_items,
+      TransientVectorType& tvec,
+      PyObject* arg) {
     PyObjectRef iter{PyObject_GetIter(arg), false};
     if (!iter) {
       return false;
@@ -457,7 +513,12 @@ struct ImmutableList {
       auto const hvalue = valueHash(value.get());
       auto const hitem = itemHash(hvalue, tvec.size());
       xorHashInPlace(hash, hitem);
-      tvec.push_back(ListItem{std::move(value), hvalue, hitem});
+      auto is_immutable_json = isImmutableJsonObject(value.get());
+      if (is_immutable_json) {
+        ++immutable_json_items;
+      }
+      tvec.push_back(
+          ListItem{std::move(value), hvalue, hitem, is_immutable_json});
     }
 
     return !PyErr_Occurred();
@@ -515,7 +576,19 @@ PyMappingMethods ImmutableList_mappingMethods = {
     .mp_ass_subscript = nullptr,
 };
 
+PyGetSetDef ImmutableList_getset[] = {
+    {"isImmutableJson",
+     method<ImmutableList, &ImmutableList::isImmutableJsonList>(),
+     nullptr,
+     "docstring",
+     nullptr},
+    {nullptr}};
+
 } // namespace
+
+bool isImmutableJsonList(PyObject* obj) {
+  return reinterpret_cast<ImmutableList*>(obj)->state.isImmutableJson;
+}
 
 PyTypeObject ImmutableList_typeObject = {
     PyVarObject_HEAD_INIT(nullptr, 0) //
@@ -528,6 +601,7 @@ PyTypeObject ImmutableList_typeObject = {
     .tp_doc = "(to be written)",
     .tp_iter = method<ImmutableList, &ImmutableList::iter>(),
     .tp_methods = ImmutableList_methods,
+    .tp_getset = ImmutableList_getset,
     .tp_new = &ImmutableList::new_,
 };
 PyTypeObject ImmutableListIter_typeObject = {

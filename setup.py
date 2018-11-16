@@ -16,6 +16,7 @@ setup(
                 'cpp/ImmutableDict.cpp',
                 'cpp/ImmutableList.cpp',
                 'cpp/main.cpp',
+                'cpp/util.cpp',
             ],
             language="c++",
             include_dirs=['include'],

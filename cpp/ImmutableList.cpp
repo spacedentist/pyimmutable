@@ -320,6 +320,57 @@ struct ImmutableList {
     return iter.release();
   }
 
+  PyObject* repr() {
+    PyObjectRef result{PyUnicode_FromString("ImmutableList(["), false};
+    PyObjectRef item_sep;
+
+    if (!result) {
+      return nullptr;
+    }
+
+    Py_ReprEnter(reinterpret_cast<PyObject*>(this));
+    OnDestroy repr_leave{
+        [this]() { Py_ReprLeave(reinterpret_cast<PyObject*>(this)); }};
+
+    bool first = true;
+    for (auto const& item : state.vec) {
+      PyObjectRef value{PyObject_Repr(item.value.get()), false};
+      if (!value) {
+        return nullptr;
+      }
+
+      if (!first) {
+        if (!item_sep) {
+          item_sep = PyObjectRef{PyUnicode_FromString(", "), false};
+          if (!item_sep) {
+            return nullptr;
+          }
+        }
+
+        result =
+            PyObjectRef{PyUnicode_Concat(result.get(), item_sep.get()), false};
+        if (!result) {
+          return nullptr;
+        }
+      }
+
+      result = PyObjectRef{PyUnicode_Concat(result.get(), value.get()), false};
+      if (!result) {
+        return nullptr;
+      }
+
+      first = false;
+    }
+
+    PyObjectRef end{PyUnicode_FromString("])"), false};
+    if (!end) {
+      return nullptr;
+    }
+    result = PyObjectRef{PyUnicode_Concat(result.get(), end.get()), false};
+
+    return result.release();
+  }
+
   template <typename F>
   static TypedPyObjectRef<ImmutableList> getOrCreate(
       Sha1Hash hash,
@@ -469,6 +520,7 @@ PyTypeObject ImmutableList_typeObject = {
         .tp_name = "ImmutableList",
     .tp_basicsize = sizeof(ImmutableList),
     .tp_dealloc = &ImmutableList::destroy,
+    .tp_repr = method<ImmutableList, &ImmutableList::repr>(),
     .tp_as_sequence = &ImmutableList_sequenceMethods,
     .tp_as_mapping = &ImmutableList_mappingMethods,
     .tp_doc = "(to be written)",

@@ -57,13 +57,15 @@ struct ImmutableList {
   PyObject_HEAD;
 
   struct State {
-    VectorType vec;
-    Sha1Hash sha1{0};
-    bool inLookUpMap{false};
+    VectorType const vec;
+    Sha1Hash const sha1{0};
+
+    State(VectorType&& vec, Sha1Hash sha1) : vec(std::move(vec)), sha1(sha1) {}
   };
   union {
     State state;
   };
+  bool hasState{false};
 
   static std::unordered_map<Sha1Hash, ImmutableList*, Sha1HashHasher> lookUpMap;
 
@@ -384,15 +386,15 @@ struct ImmutableList {
         TypedPyObjectRef<ImmutableList>::create(&ImmutableList_typeObject);
 
     if (obj) {
-      new (std::addressof(obj->state)) State();
-
-      obj->state.vec = std::forward<F>(vec_factory)();
-      obj->state.sha1 = hash;
+      new (std::addressof(obj->state))
+          State(std::forward<F>(vec_factory)(), hash);
+      obj->hasState = true;
 
       try {
         lookUpMap.emplace(hash, obj.get());
-        obj->state.inLookUpMap = true;
       } catch (...) {
+        obj->state.~State();
+        obj->hasState = false;
         obj = {};
       }
     }
@@ -464,11 +466,11 @@ struct ImmutableList {
   static void destroy(PyObject* pyself) {
     ImmutableList* const self = reinterpret_cast<ImmutableList*>(pyself);
 
-    if (self->state.inLookUpMap) {
+    if (self->hasState) {
       lookUpMap.erase(self->state.sha1);
+      self->state.~State();
     }
 
-    std::addressof(self->state)->~State();
     PyObject_Del(pyself);
   }
 

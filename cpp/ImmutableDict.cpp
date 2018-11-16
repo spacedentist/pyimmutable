@@ -74,13 +74,15 @@ struct ImmutableDict {
   PyObject_HEAD;
 
   struct State {
-    MapType map;
-    Sha1Hash sha1{0};
-    bool inLookUpMap{false};
+    MapType const map;
+    Sha1Hash const sha1{0};
+
+    State(MapType&& map, Sha1Hash sha1) : map(std::move(map)), sha1(sha1) {}
   };
   union {
     State state;
   };
+  bool hasState{false};
 
   static std::unordered_map<Sha1Hash, ImmutableDict*, Sha1HashHasher> lookUpMap;
 
@@ -275,15 +277,15 @@ struct ImmutableDict {
         TypedPyObjectRef<ImmutableDict>::create(&ImmutableDict_typeObject);
 
     if (obj) {
-      new (std::addressof(obj->state)) State();
-
-      obj->state.map = std::forward<F>(map_factory)();
-      obj->state.sha1 = hash;
+      new (std::addressof(obj->state))
+          State(std::forward<F>(map_factory)(), hash);
+      obj->hasState = true;
 
       try {
         lookUpMap.emplace(hash, obj.get());
-        obj->state.inLookUpMap = true;
       } catch (...) {
+        obj->state.~State();
+        obj->hasState = false;
         obj = {};
       }
     }
@@ -431,11 +433,11 @@ struct ImmutableDict {
   static void destroy(PyObject* pyself) {
     ImmutableDict* const self = reinterpret_cast<ImmutableDict*>(pyself);
 
-    if (self->state.inLookUpMap) {
+    if (self->hasState) {
       lookUpMap.erase(self->state.sha1);
+      self->state.~State();
     }
 
-    std::addressof(self->state)->~State();
     PyObject_Del(pyself);
   }
 

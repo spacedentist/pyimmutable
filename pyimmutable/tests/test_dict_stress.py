@@ -13,20 +13,17 @@ class StressTestImmutableDict(unittest.TestCase):
 
         class X:
             pass
+
         x = X()
 
-        objects = [x, x, True, False, None,
-                   "\uf111", -4.5, -4.501, -4.502, 4.5]
+        objects = [x, x, True, False, None, "\uf111", -4.5, -4.501, -4.502, 4.5]
         objects.extend(range(-50, 50))
         objects.extend(str(r.random()) for i in range(100))
         objects.append(unittest)
 
-        dicts = list(
-            (ImmutableDict(), {})
-            for i in range(10)
-        )
+        dicts = list((ImmutableDict(), {}) for i in range(10))
 
-        for i in range(1000000):
+        for i in range(1_000_000):
             # Mutate actions
             idx = random.randrange(0, len(dicts))
             idict, pydict = dicts[idx]
@@ -57,17 +54,21 @@ class StressTestImmutableDict(unittest.TestCase):
                     value = KeyError
                 self.assertEqual(value, pydict.get(key, KeyError))
             elif action == 10:
-                self.assertTrue(compareUnsortedUniqueSequences(
-                    idict, pydict))
+                self.assertTrue(compareUnsortedUniqueSequences(idict, pydict))
             elif action == 11:
-                self.assertTrue(compareUnsortedUniqueSequences(
-                    idict.keys(), pydict))
+                self.assertTrue(
+                    compareUnsortedUniqueSequences(idict.keys(), pydict)
+                )
             elif action == 12:
-                self.assertTrue(compareUnsortedSequences(
-                    idict.values(), pydict.values()))
+                self.assertTrue(
+                    compareUnsortedSequences(idict.values(), pydict.values())
+                )
             elif action == 13:
-                self.assertTrue(compareUnsortedUniqueSequences(
-                    idict.items(), pydict.items()))
+                self.assertTrue(
+                    compareUnsortedUniqueSequences(
+                        idict.items(), pydict.items()
+                    )
+                )
 
         for idict, pydict in dicts:
             self.assertEqual(dict(idict), pydict)
@@ -107,5 +108,5 @@ def compareUnsortedUniqueSequences(a, b):
     return len(la) == len(lb) == len(sa) == len(sb) and sa == sb
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

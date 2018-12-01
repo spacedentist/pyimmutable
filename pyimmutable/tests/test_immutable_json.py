@@ -4,7 +4,6 @@ from pyimmutable import ImmutableDict, ImmutableList
 
 
 class TestImmutableDict(unittest.TestCase):
-
     def verify(self, *objects):
         for x in objects:
             if type(x) in (ImmutableDict, ImmutableList):
@@ -26,23 +25,23 @@ class TestImmutableDict(unittest.TestCase):
         ch = ImmutableChecker(self)
 
         ch.addImmutable(ImmutableDict())
-        ch.addImmutable(ImmutableDict({'a': 1}))
-        ch.addImmutable(ImmutableDict({'a': 1, 'b': 2}))
-        ch.addImmutable(ImmutableDict({'a': 1, 'b': 'foo'}))
-        ch.addImmutable(ImmutableDict({'a': 1, 'b': None}))
-        ch.addImmutable(ImmutableDict({'a': 1, 'b': True}))
-        ch.addImmutable(ImmutableDict({'a': 1, 'b': 9.876}))
-        ch.addNonImmutable(ImmutableDict({'a': 1, 'b': 2, 'c': Exception()}))
+        ch.addImmutable(ImmutableDict({"a": 1}))
+        ch.addImmutable(ImmutableDict({"a": 1, "b": 2}))
+        ch.addImmutable(ImmutableDict({"a": 1, "b": "foo"}))
+        ch.addImmutable(ImmutableDict({"a": 1, "b": None}))
+        ch.addImmutable(ImmutableDict({"a": 1, "b": True}))
+        ch.addImmutable(ImmutableDict({"a": 1, "b": 9.876}))
+        ch.addNonImmutable(ImmutableDict({"a": 1, "b": 2, "c": Exception()}))
         ch.addImmutable(
-            ImmutableDict({'a': 1, 'b': 2, 'c': Exception()})
-            .discard('c'))
+            ImmutableDict({"a": 1, "b": 2, "c": Exception()}).discard("c")
+        )
         ch.addImmutable(
-            ImmutableDict({'a': 99, 'b': 2, 'c': Exception()})
-            .discard('c'))
-        ch.addNonImmutable(ImmutableDict({'a': 1, 'b': 2, True: 123}))
+            ImmutableDict({"a": 99, "b": 2, "c": Exception()}).discard("c")
+        )
+        ch.addNonImmutable(ImmutableDict({"a": 1, "b": 2, True: 123}))
         ch.addImmutable(
-            ImmutableDict({'a': 1, 'b': 2, True: 123})
-            .discard(True))
+            ImmutableDict({"a": 1, "b": 2, True: 123}).discard(True)
+        )
 
         ch.check_all()
 
@@ -52,24 +51,42 @@ class TestImmutableDict(unittest.TestCase):
         ch.addImmutable(ImmutableList())
         ch.addImmutable(ImmutableList([1]))
         ch.addImmutable(ImmutableList([1, 2]))
-        ch.addImmutable(ImmutableList([1, 'foo']))
+        ch.addImmutable(ImmutableList([1, "foo"]))
         ch.addImmutable(ImmutableList([1, None]))
         ch.addImmutable(ImmutableList([1, True]))
         ch.addImmutable(ImmutableList([1, 9.876]))
         ch.addNonImmutable(ImmutableList([1, 2, Exception()]))
-        ch.addImmutable(
-            ImmutableList([1, 2, Exception()])[0:2])
-        ch.addImmutable(
-            ImmutableList([99, 2, Exception()])[0:2])
+        ch.addImmutable(ImmutableList([1, 2, Exception()])[0:2])
+        ch.addImmutable(ImmutableList([99, 2, Exception()])[0:2])
 
         ch.check_all()
 
     def test_mixed(self):
         ch = ImmutableChecker(self)
-        keys = ('', 'a', 'foobar', 'baz', '0',
-                '123', 'xxx', None, False, unittest)
-        values = keys + (123, 0, -1, 12.34, 567.76,
-                         True, [], {}, [1, 2], {'a': 1})
+        keys = (
+            "",
+            "a",
+            "foobar",
+            "baz",
+            "0",
+            "123",
+            "xxx",
+            None,
+            False,
+            unittest,
+        )
+        values = keys + (
+            123,
+            0,
+            -1,
+            12.34,
+            567.76,
+            True,
+            [],
+            {},
+            [1, 2],
+            {"a": 1},
+        )
 
         idicts = set()
         for k1 in keys:
@@ -104,13 +121,13 @@ class TestImmutableDict(unittest.TestCase):
         idicts = list(idicts)
         ilists = list(ilists)
 
-        for n in range(100000):
-            d1 = idicts[n * 104651 % len(idicts)]
-            l1 = ilists[n * 104659 % len(ilists)]
-            k1 = keys[n * 104677 % len(keys)]
-            k2 = keys[n * 104681 % len(keys)]
-            d2 = idicts[n * 104683 % len(idicts)]
-            l2 = ilists[n * 104693 % len(ilists)]
+        for n in range(100_000):
+            d1 = idicts[n * 104_651 % len(idicts)]
+            l1 = ilists[n * 104_659 % len(ilists)]
+            k1 = keys[n * 104_677 % len(keys)]
+            k2 = keys[n * 104_681 % len(keys)]
+            d2 = idicts[n * 104_683 % len(idicts)]
+            l2 = ilists[n * 104_693 % len(ilists)]
 
             nl = l1.append(d1)
             ilists.append(nl)
@@ -161,33 +178,27 @@ class ImmutableChecker:
         self.nonimmutables.add(x)
 
     def add(self, x):
-        if (isImmutableJson(x)):
+        if isImmutableJson(x):
             return self.addImmutable(x)
         else:
             return self.addNonImmutable(x)
 
     def check_all(self):
-        self.test.assertTrue(all(
-            x.isImmutableJson for x in self.immutables))
-        self.test.assertTrue(all(
-            (not x.isImmutableJson) for x in self.nonimmutables))
+        self.test.assertTrue(all(x.isImmutableJson for x in self.immutables))
+        self.test.assertTrue(
+            all((not x.isImmutableJson) for x in self.nonimmutables)
+        )
 
 
 def isImmutableJson(x):
     if x is None or type(x) in (str, bool, int, float):
         return True
     if type(x) is ImmutableDict:
-        return all(
-            type(k) is str and isImmutableJson(v)
-            for k, v in x.items()
-        )
+        return all(type(k) is str and isImmutableJson(v) for k, v in x.items())
     if type(x) is ImmutableList:
-        return all(
-            isImmutableJson(i)
-            for i in x
-        )
+        return all(isImmutableJson(i) for i in x)
     return False
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

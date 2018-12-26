@@ -1,0 +1,4 @@
+recursive-include cpp *
+include lib/immer/LICENSE
+include lib/immer/README.rst
+recursive-include lib/immer/immer *

@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="pyimmutable",
-    version="0.1",
+    version="0.1.0",
     description="Immutable dict and lists",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -24,7 +24,7 @@ setup(
                 "cpp/util.cpp",
             ],
             language="c++",
-            include_dirs=["include"],
+            include_dirs=["lib/immer"],
             libraries=["ssl"],
             extra_compile_args=["-std=c++17"],
         )

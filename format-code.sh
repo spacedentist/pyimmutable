@@ -3,7 +3,7 @@
 shopt -s globstar
 
 # Format all Python code
-black *.py pyimmutable/**/*.py
+black --line-length 79 *.py pyimmutable/**/*.py
 
 # Format C++ code
 clang-format -i cpp/**/*.{cpp,h}

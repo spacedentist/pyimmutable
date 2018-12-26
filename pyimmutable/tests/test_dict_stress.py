@@ -1,7 +1,6 @@
 import collections
 import gc
 import random
-import sys
 import unittest
 
 from pyimmutable import ImmutableDict
@@ -16,7 +15,18 @@ class StressTestImmutableDict(unittest.TestCase):
 
         x = X()
 
-        objects = [x, x, True, False, None, "\uf111", -4.5, -4.501, -4.502, 4.5]
+        objects = [
+            x,
+            x,
+            True,
+            False,
+            None,
+            "\uf111",
+            -4.5,
+            -4.501,
+            -4.502,
+            4.5,
+        ]
         objects.extend(range(-50, 50))
         objects.extend(str(r.random()) for i in range(100))
         objects.append(unittest)

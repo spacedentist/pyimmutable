@@ -47,6 +47,14 @@ class Sha1Hasher {
     } else if (PyFloat_Check(obj)) {
       double d = PyFloat_AS_DOUBLE(obj);
       return (*this)("flt", 3)(&d, sizeof(d));
+    } else if (PyTuple_Check(obj)) {
+      auto const size = PyTuple_Size(obj);
+      (*this)("tpl", 3)(&size, sizeof(size));
+
+      for (Py_ssize_t i = 0; i < size; ++i) {
+        (*this)(PyTuple_GetItem(obj, i));
+      }
+      return *this;
     } else {
       return (*this)("obj", 3)(&obj, sizeof(PyObject*));
     }

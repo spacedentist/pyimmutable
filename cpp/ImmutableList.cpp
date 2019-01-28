@@ -1,5 +1,6 @@
 #include "ImmutableList.h"
 
+#include <cstddef>
 #include <memory>
 #include <unordered_map>
 #include <vector>
@@ -56,6 +57,8 @@ struct ImmutableListIter {
 
 struct ImmutableList {
   PyObject_HEAD;
+  bool hasState;
+  PyObject* weakreflist; // List of weak references
 
   struct State {
     VectorType const vec;
@@ -72,7 +75,6 @@ struct ImmutableList {
   union {
     State state;
   };
-  bool hasState{false};
 
   static std::unordered_map<Sha1Hash, ImmutableList*, Sha1HashHasher> lookUpMap;
 
@@ -432,15 +434,19 @@ struct ImmutableList {
         TypedPyObjectRef<ImmutableList>::create(&ImmutableList_typeObject);
 
     if (obj) {
-      new (std::addressof(obj->state))
-          State(std::forward<F>(vec_factory)(), hash, immutable_json_items);
-      obj->hasState = true;
+      obj->weakreflist = nullptr;
+      obj->hasState = false;
 
       try {
+        new (std::addressof(obj->state))
+            State(std::forward<F>(vec_factory)(), hash, immutable_json_items);
+        obj->hasState = true;
         lookUpMap.emplace(hash, obj.get());
       } catch (...) {
-        obj->state.~State();
-        obj->hasState = false;
+        if (obj->hasState) {
+          obj->state.~State();
+          obj->hasState = false;
+        }
         obj = {};
       }
     }
@@ -527,6 +533,10 @@ struct ImmutableList {
   static void destroy(PyObject* pyself) {
     ImmutableList* const self = reinterpret_cast<ImmutableList*>(pyself);
 
+    if (self->weakreflist) {
+      PyObject_ClearWeakRefs(pyself);
+    }
+
     if (self->hasState) {
       lookUpMap.erase(self->state.sha1);
       self->state.~State();
@@ -599,6 +609,7 @@ PyTypeObject ImmutableList_typeObject = {
     .tp_as_sequence = &ImmutableList_sequenceMethods,
     .tp_as_mapping = &ImmutableList_mappingMethods,
     .tp_doc = "(to be written)",
+    .tp_weaklistoffset = offsetof(ImmutableList, weakreflist),
     .tp_iter = method<ImmutableList, &ImmutableList::iter>(),
     .tp_methods = ImmutableList_methods,
     .tp_getset = ImmutableList_getset,

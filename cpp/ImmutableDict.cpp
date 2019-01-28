@@ -1,5 +1,6 @@
 #include "ImmutableDict.h"
 
+#include <cstddef>
 #include <memory>
 #include <unordered_map>
 
@@ -77,6 +78,8 @@ struct ImmutableDictIter {
 
 struct ImmutableDict {
   PyObject_HEAD;
+  PyObject* weakreflist; // List of weak references
+  bool hasState;
 
   struct State {
     MapType const map;
@@ -93,7 +96,6 @@ struct ImmutableDict {
   union {
     State state;
   };
-  bool hasState{false};
 
   static std::unordered_map<Sha1Hash, ImmutableDict*, Sha1HashHasher> lookUpMap;
 
@@ -310,15 +312,19 @@ struct ImmutableDict {
         TypedPyObjectRef<ImmutableDict>::create(&ImmutableDict_typeObject);
 
     if (obj) {
-      new (std::addressof(obj->state))
-          State(std::forward<F>(map_factory)(), hash, is_immutable_items);
-      obj->hasState = true;
+      obj->weakreflist = nullptr;
+      obj->hasState = false;
 
       try {
+        new (std::addressof(obj->state))
+            State(std::forward<F>(map_factory)(), hash, is_immutable_items);
+        obj->hasState = true;
         lookUpMap.emplace(hash, obj.get());
       } catch (...) {
-        obj->state.~State();
-        obj->hasState = false;
+        if (obj->hasState) {
+          obj->state.~State();
+          obj->hasState = false;
+        }
         obj = {};
       }
     }
@@ -494,6 +500,10 @@ struct ImmutableDict {
   static void destroy(PyObject* pyself) {
     ImmutableDict* const self = reinterpret_cast<ImmutableDict*>(pyself);
 
+    if (self->weakreflist) {
+      PyObject_ClearWeakRefs(pyself);
+    }
+
     if (self->hasState) {
       lookUpMap.erase(self->state.sha1);
       self->state.~State();
@@ -578,6 +588,7 @@ PyTypeObject ImmutableDict_typeObject = {
     .tp_repr = method<ImmutableDict, &ImmutableDict::repr>(),
     .tp_as_mapping = &ImmutableDict_mappingMethods,
     .tp_doc = "(to be written)",
+    .tp_weaklistoffset = offsetof(ImmutableDict, weakreflist),
     .tp_iter = method<ImmutableDict, &ImmutableDict::iter>(),
     .tp_methods = ImmutableDict_methods,
     .tp_getset = ImmutableDict_getset,

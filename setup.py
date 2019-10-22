@@ -17,15 +17,22 @@ setup(
     ext_modules=[
         Extension(
             "_pyimmutable",
-            [
+            sources=[
                 "cpp/ImmutableDict.cpp",
                 "cpp/ImmutableList.cpp",
                 "cpp/main.cpp",
                 "cpp/util.cpp",
             ],
+            depends=[
+                "cpp/Hash.h",
+                "cpp/ImmutableDict.h",
+                "cpp/ImmutableList.h",
+                "cpp/PyObjectRef.h",
+                "cpp/util.h",
+            ],
             language="c++",
             include_dirs=["lib/immer"],
-            libraries=["ssl"],
+            libraries=["ssl", "crypto"],
             extra_compile_args=["-std=c++17"],
         )
     ],
@@ -35,4 +42,6 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
+    test_suite="pyimmutable.tests",
+    setup_requires=["tox"],
 )

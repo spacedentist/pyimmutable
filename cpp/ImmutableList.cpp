@@ -397,7 +397,9 @@ struct ImmutableList {
       return nullptr;
     }
 
-    Py_ReprEnter(reinterpret_cast<PyObject*>(this));
+    if (Py_ReprEnter(reinterpret_cast<PyObject*>(this)) != 0) {
+      return nullptr;
+    }
     OnDestroy repr_leave{
         [this]() { Py_ReprLeave(reinterpret_cast<PyObject*>(this)); }};
 

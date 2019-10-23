@@ -12,7 +12,7 @@ AlwaysBreakBeforeMultilineStrings: true
 AlwaysBreakTemplateDeclarations: true
 BinPackArguments: false
 BinPackParameters: false
-BraceWrapping:   
+BraceWrapping:
   AfterExternBlock: false
   SplitEmptyFunction: true
   SplitEmptyRecord: true
@@ -24,7 +24,7 @@ BreakStringLiterals: false
 CompactNamespaces: false
 ConstructorInitializerAllOnOneLineOrOnePerLine: true
 FixNamespaceComments: true
-ForEachMacros:   
+ForEachMacros:
   - FOR_EACH_RANGE
   - FOR_EACH
   - BOOST_FOREACH
@@ -38,9 +38,5 @@ PenaltyBreakAssignment: 2
 PenaltyBreakBeforeFirstCallParameter: 1
 PenaltyReturnTypeOnItsOwnLine: 200
 PointerAlignment: Left
-RawStringFormats: 
-  - Delimiter:       pb
-    Language:        TextProto
-    BasedOnStyle:    google
 SortUsingDeclarations: true
 SpaceAfterTemplateKeyword: true

@@ -22,6 +22,8 @@
  * SOFTWARE.
  */
 
+#pragma once
+
 #include <openssl/evp.h>
 
 namespace pyimmutable {

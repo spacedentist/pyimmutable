@@ -22,6 +22,8 @@
  * SOFTWARE.
  */
 
+#pragma once
+
 #include <Python.h>
 
 namespace pyimmutable {

@@ -2,7 +2,12 @@ import collections.abc
 import functools
 import json
 
-from _pyimmutable import ImmutableDict, ImmutableList
+from _pyimmutable import (  # noqa: F401
+    ImmutableDict,
+    ImmutableList,
+    isImmutableJson,
+)
+
 
 __all__ = (
     "ImmutableDict",

@@ -26,8 +26,18 @@
 
 #include "ImmutableDict.h"
 #include "ImmutableList.h"
+#include "PyObjectRef.h"
+#include "util.h"
 
-static PyMethodDef methods[] = {{nullptr, nullptr, 0, nullptr}};
+static PyMethodDef methods[] = {
+    {"isImmutableJson",
+     [](PyObject*, PyObject* obj) {
+       bool value = pyimmutable::isImmutableJsonObject(obj);
+       return pyimmutable::PyObjectRef{value ? Py_True : Py_False}.release();
+     },
+     METH_O,
+     nullptr},
+    {nullptr, nullptr, 0, nullptr}};
 
 static struct PyModuleDef module = {PyModuleDef_HEAD_INIT,
                                     "pyimmutable",

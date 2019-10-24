@@ -24,6 +24,9 @@
 
 #pragma once
 
+#include <cstddef>
+#include <utility>
+
 #include <Python.h>
 
 namespace pyimmutable {

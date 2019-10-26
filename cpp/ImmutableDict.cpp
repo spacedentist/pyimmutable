@@ -110,6 +110,7 @@ struct ImmutableDict {
     Sha1Hash const sha1;
     std::size_t immutableJsonItems;
     bool isImmutableJson;
+    PyObjectRef meta;
 
     State(MapType&& mapx, Sha1Hash sha1, std::size_t immutable_json_items)
         : map(std::move(mapx)),
@@ -324,6 +325,13 @@ struct ImmutableDict {
 
   PyObject* isImmutableJsonDict(void* /* unused */) {
     return PyObjectRef(state.isImmutableJson ? Py_True : Py_False).release();
+  }
+
+  PyObject* meta(void* /* unused */) {
+    if (!state.meta) {
+      state.meta = PyObjectRef{PyDict_New(), false};
+    }
+    return PyObjectRef{state.meta}.release();
   }
 
   template <typename F>
@@ -595,6 +603,11 @@ PyMappingMethods ImmutableDict_mappingMethods = {
 PyGetSetDef ImmutableDict_getset[] = {
     {"isImmutableJson",
      method<ImmutableDict, &ImmutableDict::isImmutableJsonDict>(),
+     nullptr,
+     "docstring",
+     nullptr},
+    {"meta",
+     method<ImmutableDict, &ImmutableDict::meta>(),
      nullptr,
      "docstring",
      nullptr},

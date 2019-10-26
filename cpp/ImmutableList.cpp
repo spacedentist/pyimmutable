@@ -89,6 +89,7 @@ struct ImmutableList {
     Sha1Hash const sha1;
     std::size_t immutableJsonItems;
     bool isImmutableJson;
+    PyObjectRef meta;
 
     State(VectorType&& vecx, Sha1Hash sha1, std::size_t immutable_json_items)
         : vec(std::move(vecx)),
@@ -446,6 +447,13 @@ struct ImmutableList {
     return PyObjectRef(state.isImmutableJson ? Py_True : Py_False).release();
   }
 
+  PyObject* meta(void* /* unused */) {
+    if (!state.meta) {
+      state.meta = PyObjectRef{PyDict_New(), false};
+    }
+    return PyObjectRef{state.meta}.release();
+  }
+
   template <typename F>
   static TypedPyObjectRef<ImmutableList> getOrCreate(
       Sha1Hash hash,
@@ -615,6 +623,11 @@ PyMappingMethods ImmutableList_mappingMethods = {
 PyGetSetDef ImmutableList_getset[] = {
     {"isImmutableJson",
      method<ImmutableList, &ImmutableList::isImmutableJsonList>(),
+     nullptr,
+     "docstring",
+     nullptr},
+    {"meta",
+     method<ImmutableList, &ImmutableList::meta>(),
      nullptr,
      "docstring",
      nullptr},

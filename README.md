@@ -1,5 +1,7 @@
 # pyimmutable
 
+[![Build Status](https://travis-ci.org/spacedentist/pyimmutable.svg?branch=master)](https://travis-ci.org/spacedentist/pyimmutable)
+
 ## Overview
 
 pyimmutable offers two immutable data types for Python3.6+: a dictionary and a list. Its primary purpose is to deal with JSON-like data, i.e. data structures build from dictionaries and lists, strings, numbers, booleans and null (or None in Python). The advantage of using immutable data types for handling such data structures is that you can pass them around to other functions and classes without the danger of them being (accidentally) changed, as this would also affect your original reference to said data structure.

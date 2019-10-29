@@ -5,11 +5,14 @@ with open("README.md", "r") as fh:
 
 setup(
     name="pyimmutable",
-    version="0.1.2",
+    version="0.1.3",
     description="Immutable dict and lists",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/spacedentist/pyimmutable",
+    download_url=(
+        "https://github.com/spacedentist/pyimmutable/archive/v0.1.3.tar.gz"
+    ),
     author="Sven Over",
     author_email="sp@cedenti.st",
     license="MIT",

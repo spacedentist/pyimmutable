@@ -62,4 +62,10 @@ OnDestroy(F &&)->OnDestroy<std::decay_t<F>>;
 
 bool isImmutableJsonObject(PyObject*);
 
+PyObject* disallow_construction(
+    PyTypeObject* /*type*/,
+    PyObject* /*args*/,
+    PyObject*
+    /*kwds*/);
+
 } // namespace pyimmutable

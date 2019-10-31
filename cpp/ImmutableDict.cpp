@@ -52,43 +52,38 @@ bool isImmutableJsonItem(PyObject* key, PyObject* value) {
 using MapType = immer::map<Sha1Hash, DictItem, Sha1HashHasher>;
 
 struct ImmutableDictIter {
+  using Extractor = PyObjectRef (*)(DictItem const&);
+
   PyObject_HEAD;
 
   struct State {
     MapType::const_iterator iter;
     MapType::const_iterator end;
     PyObjectRef immutableDict;
+    Extractor extractor;
   };
   union {
     State state;
   };
 
-  PyObject* nextKey() {
+  PyObject* next() {
     if (state.iter == state.end) {
       PyErr_SetNone(PyExc_StopIteration);
       return nullptr;
     }
-    return state.iter++->second.key.copy().release();
+    return state.extractor(state.iter++->second).copy().release();
   }
-  PyObject* nextValue() {
-    if (state.iter == state.end) {
-      PyErr_SetNone(PyExc_StopIteration);
-      return nullptr;
-    }
-    return state.iter++->second.value.copy().release();
+
+  static PyObjectRef keyExtractor(DictItem const& item) {
+    return item.key;
   }
-  PyObject* nextItem() {
-    if (state.iter == state.end) {
-      PyErr_SetNone(PyExc_StopIteration);
-      return nullptr;
-    }
 
-    auto tuple = buildValue(
-        "OO", state.iter->second.key.get(), state.iter->second.value.get());
+  static PyObjectRef valueExtractor(DictItem const& item) {
+    return item.value;
+  }
 
-    ++state.iter;
-
-    return tuple.release();
+  static PyObjectRef itemExtractor(DictItem const& item) {
+    return buildValue("OO", item.key.get(), item.value.get());
   }
 
   static void destroy(PyObject* pyself) {
@@ -225,8 +220,9 @@ struct ImmutableDict {
     return state.map.size();
   }
 
-  PyObject* iterImpl(PyTypeObject* type_object) {
-    auto iter = TypedPyObjectRef<ImmutableDictIter>::create(type_object);
+  PyObject* iterImpl(ImmutableDictIter::Extractor extractor) {
+    auto iter = TypedPyObjectRef<ImmutableDictIter>::create(
+        &ImmutableDictIter_typeObject);
 
     if (iter) {
       new (std::addressof(iter->state)) ImmutableDictIter::State();
@@ -234,22 +230,23 @@ struct ImmutableDict {
       iter->state.iter = state.map.begin();
       iter->state.end = state.map.end();
       iter->state.immutableDict = TypedPyObjectRef{this};
+      iter->state.extractor = extractor;
     }
 
     return iter.release();
   }
 
   PyObject* iter() {
-    return iterImpl(&ImmutableDictKeyIter_typeObject);
+    return iterImpl(&ImmutableDictIter::keyExtractor);
   }
   PyObject* keys(PyObject* /* unused */) {
-    return iterImpl(&ImmutableDictKeyIter_typeObject);
+    return iterImpl(&ImmutableDictIter::keyExtractor);
   }
   PyObject* values(PyObject* /* unused */) {
-    return iterImpl(&ImmutableDictValueIter_typeObject);
+    return iterImpl(&ImmutableDictIter::valueExtractor);
   }
   PyObject* items(PyObject* /* unused */) {
-    return iterImpl(&ImmutableDictItemIter_typeObject);
+    return iterImpl(&ImmutableDictIter::itemExtractor);
   }
 
   PyObject* repr() {
@@ -633,29 +630,14 @@ PyTypeObject ImmutableDict_typeObject = {
     .tp_getset = ImmutableDict_getset,
     .tp_new = &ImmutableDict::new_,
 };
-PyTypeObject ImmutableDictKeyIter_typeObject = {
+PyTypeObject ImmutableDictIter_typeObject = {
     PyVarObject_HEAD_INIT(nullptr, 0) //
-        .tp_name = "ImmutableDictKeyIterator",
+        .tp_name = "ImmutableDictIterator",
     .tp_basicsize = sizeof(ImmutableDictIter),
     .tp_dealloc = &ImmutableDictIter::destroy,
     .tp_iter = [](PyObject* self) { return PyObjectRef{self}.release(); },
-    .tp_iternext = method<ImmutableDictIter, &ImmutableDictIter::nextKey>(),
-};
-PyTypeObject ImmutableDictValueIter_typeObject = {
-    PyVarObject_HEAD_INIT(nullptr, 0) //
-        .tp_name = "ImmutableDictValueIterator",
-    .tp_basicsize = sizeof(ImmutableDictIter),
-    .tp_dealloc = &ImmutableDictIter::destroy,
-    .tp_iter = [](PyObject* self) { return PyObjectRef{self}.release(); },
-    .tp_iternext = method<ImmutableDictIter, &ImmutableDictIter::nextValue>(),
-};
-PyTypeObject ImmutableDictItemIter_typeObject = {
-    PyVarObject_HEAD_INIT(nullptr, 0) //
-        .tp_name = "ImmutableDictItemIterator",
-    .tp_basicsize = sizeof(ImmutableDictIter),
-    .tp_dealloc = &ImmutableDictIter::destroy,
-    .tp_iter = [](PyObject* self) { return PyObjectRef{self}.release(); },
-    .tp_iternext = method<ImmutableDictIter, &ImmutableDictIter::nextItem>(),
+    .tp_iternext = method<ImmutableDictIter, &ImmutableDictIter::next>(),
+    .tp_new = &disallow_construction,
 };
 
 } // namespace pyimmutable

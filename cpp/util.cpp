@@ -35,4 +35,13 @@ bool isImmutableJsonObject(PyObject* obj) {
       (Py_TYPE(obj) == &ImmutableList_typeObject && isImmutableJsonList(obj));
 }
 
+PyObject* disallow_construction(
+    PyTypeObject* /*type*/,
+    PyObject* /*args*/,
+    PyObject*
+    /*kwds*/) {
+  PyErr_SetString(PyExc_TypeError, "cannot create instances of this type");
+  return nullptr;
+}
+
 } // namespace pyimmutable

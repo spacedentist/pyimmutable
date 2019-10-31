@@ -48,9 +48,7 @@ static struct PyModuleDef module = {PyModuleDef_HEAD_INIT,
 extern "C" {
 PyMODINIT_FUNC PyInit__pyimmutable(void) {
   if (PyType_Ready(&pyimmutable::ImmutableDict_typeObject) < 0 ||
-      PyType_Ready(&pyimmutable::ImmutableDictKeyIter_typeObject) < 0 ||
-      PyType_Ready(&pyimmutable::ImmutableDictValueIter_typeObject) < 0 ||
-      PyType_Ready(&pyimmutable::ImmutableDictItemIter_typeObject) < 0 ||
+      PyType_Ready(&pyimmutable::ImmutableDictIter_typeObject) < 0 ||
       PyType_Ready(&pyimmutable::ImmutableList_typeObject) < 0 ||
       PyType_Ready(&pyimmutable::ImmutableListIter_typeObject) < 0) {
     return nullptr;
@@ -62,9 +60,7 @@ PyMODINIT_FUNC PyInit__pyimmutable(void) {
   }
 
   Py_INCREF(&pyimmutable::ImmutableDict_typeObject);
-  Py_INCREF(&pyimmutable::ImmutableDictKeyIter_typeObject);
-  Py_INCREF(&pyimmutable::ImmutableDictValueIter_typeObject);
-  Py_INCREF(&pyimmutable::ImmutableDictItemIter_typeObject);
+  Py_INCREF(&pyimmutable::ImmutableDictIter_typeObject);
   PyModule_AddObject(
       m,
       "ImmutableDict",

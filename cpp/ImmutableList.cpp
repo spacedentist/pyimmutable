@@ -661,6 +661,7 @@ PyTypeObject ImmutableListIter_typeObject = {
     .tp_dealloc = &ImmutableListIter::destroy,
     .tp_iter = [](PyObject* self) { return PyObjectRef{self}.release(); },
     .tp_iternext = method<ImmutableListIter, &ImmutableListIter::next>(),
+    .tp_new = &disallow_construction,
 };
 
 } // namespace pyimmutable

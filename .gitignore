@@ -5,6 +5,7 @@ __pycache__
 /.*/
 /build/
 /dist/
+/docs/_build/
 /pyimmutable.egg-info/
 
 /cpp/*.autogen.*

@@ -57,6 +57,7 @@ struct ImmutableListIter {
     VectorType::const_iterator iter;
     VectorType::const_iterator end;
     PyObjectRef immutableList;
+    bool reversed{false};
   };
   union {
     State state;
@@ -67,7 +68,9 @@ struct ImmutableListIter {
       PyErr_SetNone(PyExc_StopIteration);
       return nullptr;
     }
-    return state.iter++->value.copy().release();
+    return (state.reversed ? (--state.end) : (state.iter++))
+        ->value.copy()
+        .release();
   }
 
   static void destroy(PyObject* pyself) {
@@ -267,16 +270,57 @@ struct ImmutableList {
         .release();
   }
 
-  int contains(PyObject* value) noexcept {
-    auto const hvalue = valueHash(value);
+  PyObject* count(PyObject* value) noexcept {
+    std::size_t count = 0;
 
     for (auto const& item : state.vec) {
-      if (item.valueHash == hvalue) {
+      if (item.value.get() == value ||
+          PyObject_RichCompareBool(item.value.get(), value, Py_EQ)) {
+        ++count;
+      }
+    }
+
+    return PyLong_FromSize_t(count);
+  }
+
+  int contains(PyObject* value) noexcept {
+    for (auto const& item : state.vec) {
+      if (item.value.get() == value ||
+          PyObject_RichCompareBool(item.value.get(), value, Py_EQ)) {
         return 1;
       }
     }
 
     return 0;
+  }
+
+  PyObject* index(PyObject* args) noexcept {
+    PyObject* value = nullptr;
+    Py_ssize_t start = 0;
+    Py_ssize_t stop = std::numeric_limits<Py_ssize_t>::max();
+
+    if (!PyArg_ParseTuple(args, "O|nn", &value, &start, &stop)) {
+      return nullptr;
+    }
+
+    if (start < 0) {
+      start = std::max<Py_ssize_t>(state.vec.size() + start, 0);
+    }
+    if (stop < 0) {
+      stop += state.vec.size();
+    }
+    stop = std::min<Py_ssize_t>(stop, state.vec.size());
+
+    for (auto i = start; i < stop; ++i) {
+      auto const& item = state.vec[i];
+      if (item.value.get() == value ||
+          PyObject_RichCompareBool(item.value.get(), value, Py_EQ)) {
+        return PyLong_FromSize_t(i);
+      }
+    }
+
+    PyErr_Format(PyExc_ValueError, "%R is not in ImmutableList", value);
+    return nullptr;
   }
 
   Py_ssize_t len() {
@@ -375,7 +419,7 @@ struct ImmutableList {
         .release();
   }
 
-  PyObject* iter() {
+  PyObject* iterImpl(bool reversed) {
     auto iter = TypedPyObjectRef<ImmutableListIter>::create(
         &ImmutableListIter_typeObject);
 
@@ -385,9 +429,18 @@ struct ImmutableList {
       iter->state.iter = state.vec.begin();
       iter->state.end = state.vec.end();
       iter->state.immutableList = TypedPyObjectRef{this};
+      iter->state.reversed = reversed;
     }
 
     return iter.release();
+  }
+
+  PyObject* iter() {
+    return iterImpl(false);
+  }
+
+  PyObject* reversed(PyObject* /* unused */) {
+    return iterImpl(true);
   }
 
   PyObject* repr() {
@@ -588,17 +641,29 @@ std::unordered_map<Sha1Hash, ImmutableList*, Sha1HashHasher>
     ImmutableList::lookUpMap{};
 
 PyMethodDef ImmutableList_methods[] = {
-    {"set",
-     method<ImmutableList, &ImmutableList::set>(),
-     METH_VARARGS,
+    {"__reversed__",
+     method<ImmutableList, &ImmutableList::reversed>(),
+     METH_NOARGS,
      "docstring"},
     {"append",
      method<ImmutableList, &ImmutableList::append>(),
      METH_O,
      "docstring"},
+    {"count",
+     method<ImmutableList, &ImmutableList::count>(),
+     METH_O,
+     "docstring"},
     {"extend",
      method<ImmutableList, &ImmutableList::extend>(),
      METH_O,
+     "docstring"},
+    {"index",
+     method<ImmutableList, &ImmutableList::index>(),
+     METH_VARARGS,
+     "docstring"},
+    {"set",
+     method<ImmutableList, &ImmutableList::set>(),
+     METH_VARARGS,
      "docstring"},
     {"_get_instance_count",
      &ImmutableList::getInstanceCount,

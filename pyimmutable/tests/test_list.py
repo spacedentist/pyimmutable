@@ -34,6 +34,39 @@ class TestImmutableDict(unittest.TestCase):
                 self.assertTrue(ImmutableList(l1 + l2) is il1.extend(il2))
                 self.assertTrue(ImmutableList(l1 + l2) is il1.extend(l2))
 
+    def test_iter(self):
+        il = ImmutableList([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+
+        self.assertEqual([x for x in il], list(range(10)))
+        self.assertEqual([x for x in iter(il)], list(range(10)))
+        self.assertEqual([x for x in il.__iter__()], list(range(10)))
+        self.assertFalse([x for x in ImmutableList()])
+
+    def test_reversed(self):
+        il = ImmutableList([9, 8, 7, 6, 5, 4, 3, 2, 1, 0])
+        self.assertEqual([x for x in reversed(il)], list(range(10)))
+        self.assertEqual([x for x in il.__reversed__()], list(range(10)))
+        self.assertEqual([x for x in iter(il.__reversed__())], list(range(10)))
+
+    def test_count(self):
+        il = ImmutableList([3, "two", 1, 3, "two", 3, 2])
+        self.assertEqual(il.count(0), 0)
+        self.assertEqual(il.count(1), 1)
+        self.assertEqual(il.count("two"), 2)
+        self.assertEqual(il.count(3), 3)
+        self.assertEqual(il.count(3.0), 3)
+
+    def test_index(self):
+        with self.assertRaises(ValueError):
+            ImmutableList().index(None)
+        with self.assertRaises(ValueError):
+            ImmutableList().index(1)
+        with self.assertRaises(ValueError):
+            ImmutableList([1, 2, 3]).index(4)
+
+        self.assertEqual(ImmutableList([1, 2, 3, 4]).index(3), 2)
+        self.assertEqual(ImmutableList([1, 2, 3, 4]).index(3.0), 2)
+
 
 if __name__ == "__main__":
     unittest.main()

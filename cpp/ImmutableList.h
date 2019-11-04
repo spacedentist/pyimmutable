@@ -28,8 +28,9 @@
 
 namespace pyimmutable {
 
-extern PyTypeObject ImmutableList_typeObject;
-extern PyTypeObject ImmutableListIter_typeObject;
+PyTypeObject* getImmutableListTypeObject();
+extern PyTypeObject* immutableListTypeObject;
+PyTypeObject* getImmutableListIterTypeObject();
 
 bool isImmutableJsonList(PyObject*);
 

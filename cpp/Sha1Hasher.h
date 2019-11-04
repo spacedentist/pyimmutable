@@ -26,10 +26,9 @@
 
 #include <openssl/evp.h>
 
-namespace pyimmutable {
+#include "Sha1Hash.h"
 
-inline constexpr std::size_t kHashSize = 20;
-using Sha1Hash = std::array<unsigned char, kHashSize>;
+namespace pyimmutable {
 
 class Sha1Hasher {
  public:
@@ -89,27 +88,6 @@ class Sha1Hasher {
  private:
   EVP_MD_CTX* ctx_;
 };
-
-struct Sha1HashHasher {
-  std::size_t operator()(Sha1Hash const& h) const {
-    return *reinterpret_cast<std::size_t const*>(std::addressof(h));
-  }
-};
-
-inline Sha1Hash&
-xorHashInPlace(Sha1Hash& h1, Sha1Hash const& h2, unsigned int shift = 0) {
-  for (std::size_t i = 0; i < kHashSize; ++i) {
-    h1[i] ^= h2[(i + shift) % kHashSize];
-  }
-
-  return h1;
-}
-
-inline Sha1Hash
-xorHash(Sha1Hash const& h1, Sha1Hash const& h2, unsigned int shift = 0) {
-  Sha1Hash copy{h1};
-  return xorHashInPlace(copy, h2, shift);
-}
 
 inline std::pair<Sha1Hash, Sha1Hash> keyValueHashes(
     PyObject* key,

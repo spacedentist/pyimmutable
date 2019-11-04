@@ -24,59 +24,32 @@
 
 #pragma once
 
-#include <cstddef>
-
-#include <Python.h>
+#include <array>
 
 namespace pyimmutable {
 
-template <typename>
-class ClassWrapper;
+inline constexpr std::size_t kHashSize = 20;
+using Sha1Hash = std::array<unsigned char, kHashSize>;
 
-template <typename>
-class Sha1UnifiedClassWrapper;
-
-template <typename T>
-struct IsPyObject {
-  static constexpr bool value = offsetof(T, ob_base) == 0;
+struct Sha1HashHasher {
+  std::size_t operator()(Sha1Hash const& h) const {
+    return *reinterpret_cast<std::size_t const*>(std::addressof(h));
+  }
 };
 
-template <>
-struct IsPyObject<PyObject> : std::true_type {};
-
-template <typename T>
-struct IsPyObject<ClassWrapper<T>> : std::true_type {};
-
-template <typename T>
-struct IsPyObject<Sha1UnifiedClassWrapper<T>> : std::true_type {};
-
-template <typename F>
-class OnDestroy {
- public:
-  template <
-      typename T,
-      typename = std::enable_if_t<std::is_invocable_v<std::decay_t<T>>>>
-  OnDestroy(T&& f) : func_(std::forward<T>(f)) {}
-  ~OnDestroy() {
-    std::move(func_)();
+inline Sha1Hash&
+xorHashInPlace(Sha1Hash& h1, Sha1Hash const& h2, unsigned int shift = 0) {
+  for (std::size_t i = 0; i < kHashSize; ++i) {
+    h1[i] ^= h2[(i + shift) % kHashSize];
   }
 
-  OnDestroy(OnDestroy const&) = delete;
-  OnDestroy& operator=(OnDestroy const&) = delete;
+  return h1;
+}
 
- private:
-  F func_;
-};
-
-template <typename F>
-OnDestroy(F &&)->OnDestroy<std::decay_t<F>>;
-
-bool isImmutableJsonObject(PyObject*);
-
-PyObject* disallow_construction(
-    PyTypeObject* /*type*/,
-    PyObject* /*args*/,
-    PyObject*
-    /*kwds*/);
+inline Sha1Hash
+xorHash(Sha1Hash const& h1, Sha1Hash const& h2, unsigned int shift = 0) {
+  Sha1Hash copy{h1};
+  return xorHashInPlace(copy, h2, shift);
+}
 
 } // namespace pyimmutable

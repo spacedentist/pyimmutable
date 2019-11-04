@@ -24,6 +24,7 @@
 
 #include <Python.h>
 
+#include "ClassWrapper.h"
 #include "ImmutableDict.h"
 #include "ImmutableList.h"
 #include "PyObjectRef.h"
@@ -45,12 +46,30 @@ static struct PyModuleDef module = {PyModuleDef_HEAD_INIT,
                                     -1,
                                     methods};
 
+PyTypeObject* pyimmutable::immutableDictTypeObject{nullptr};
+PyTypeObject* pyimmutable::immutableListTypeObject{nullptr};
+
 extern "C" {
 PyMODINIT_FUNC PyInit__pyimmutable(void) {
-  if (PyType_Ready(&pyimmutable::ImmutableDict_typeObject) < 0 ||
-      PyType_Ready(&pyimmutable::ImmutableDictIter_typeObject) < 0 ||
-      PyType_Ready(&pyimmutable::ImmutableList_typeObject) < 0 ||
-      PyType_Ready(&pyimmutable::ImmutableListIter_typeObject) < 0) {
+  using namespace pyimmutable;
+
+  immutableDictTypeObject = getImmutableDictTypeObject();
+  if (!immutableDictTypeObject) {
+    return nullptr;
+  }
+
+  immutableListTypeObject = getImmutableListTypeObject();
+  if (!immutableListTypeObject) {
+    return nullptr;
+  }
+
+  auto* immutable_dict_iter_type = getImmutableDictIterTypeObject();
+  if (!immutable_dict_iter_type) {
+    return nullptr;
+  }
+
+  auto* immutable_list_iter_type = getImmutableListIterTypeObject();
+  if (!immutable_list_iter_type) {
     return nullptr;
   }
 
@@ -59,19 +78,17 @@ PyMODINIT_FUNC PyInit__pyimmutable(void) {
     return nullptr;
   }
 
-  Py_INCREF(&pyimmutable::ImmutableDict_typeObject);
-  Py_INCREF(&pyimmutable::ImmutableDictIter_typeObject);
   PyModule_AddObject(
       m,
       "ImmutableDict",
-      reinterpret_cast<PyObject*>(&pyimmutable::ImmutableDict_typeObject));
+      PyObjectRef{reinterpret_cast<PyObject*>(immutableDictTypeObject)}
+          .release());
 
-  Py_INCREF(&pyimmutable::ImmutableList_typeObject);
-  Py_INCREF(&pyimmutable::ImmutableListIter_typeObject);
   PyModule_AddObject(
       m,
       "ImmutableList",
-      reinterpret_cast<PyObject*>(&pyimmutable::ImmutableList_typeObject));
+      PyObjectRef{reinterpret_cast<PyObject*>(immutableListTypeObject)}
+          .release());
 
   return m;
 }

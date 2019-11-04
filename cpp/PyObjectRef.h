@@ -29,21 +29,13 @@
 
 #include <Python.h>
 
+#include "util.h"
+
 namespace pyimmutable {
-
-namespace detail {
-template <typename T>
-struct IsPyObject {
-  static constexpr bool value = offsetof(T, ob_base) == 0;
-};
-
-template <>
-struct IsPyObject<PyObject> : std::true_type {};
-} // namespace detail
 
 template <typename T = PyObject>
 class TypedPyObjectRef final {
-  static_assert(detail::IsPyObject<T>::value);
+  static_assert(IsPyObject<T>::value);
 
   template <typename>
   friend class TypedPyObjectRef;
@@ -97,7 +89,7 @@ class TypedPyObjectRef final {
     return ptr_;
   }
 
-  T* getPyObject() const noexcept {
+  PyObject* getPyObject() const noexcept {
     return reinterpret_cast<PyObject*>(ptr_);
   }
 
@@ -107,6 +99,10 @@ class TypedPyObjectRef final {
 
   T* operator->() const {
     return get();
+  }
+
+  T& operator*() const {
+    return *get();
   }
 
   TypedPyObjectRef copy() const {

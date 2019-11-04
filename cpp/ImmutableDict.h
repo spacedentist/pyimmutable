@@ -28,8 +28,9 @@
 
 namespace pyimmutable {
 
-extern PyTypeObject ImmutableDict_typeObject;
-extern PyTypeObject ImmutableDictIter_typeObject;
+PyTypeObject* getImmutableDictTypeObject();
+extern PyTypeObject* immutableDictTypeObject;
+PyTypeObject* getImmutableDictIterTypeObject();
 
 bool isImmutableJsonDict(PyObject*);
 

@@ -131,7 +131,23 @@ struct PyObjectHead {
 };
 static_assert(offsetof(PyObjectHead, ob_base) == 0);
 
+template <typename T>
+T&& mangleReturnValue(T&& t) {
+  return static_cast<T&&>(t);
+}
+
+inline PyObject* mangleReturnValue(PyObjectRef obj) {
+  return obj.release();
+}
+
 } // namespace detail
+
+template <auto F>
+auto mangleReturnValue() {
+  return [](auto... args) {
+    return detail::mangleReturnValue(std::invoke(F, std::move(args)...));
+  };
+}
 
 template <typename T>
 class ClassWrapper
@@ -253,7 +269,8 @@ class ClassWrapper
   template <auto M>
   static auto method() {
     return [](PyObject* pyself, auto... args) {
-      return std::invoke(M, cast(pyself), std::move(args)...);
+      return detail::mangleReturnValue(
+          std::invoke(M, cast(pyself), std::move(args)...));
     };
   }
 

@@ -22,518 +22,196 @@
  * SOFTWARE.
  */
 
-#include "ImmutableDict.h"
+#include "ImmutableDictImpl.h"
+#include "clinic/ImmutableDict.cpp.h"
+#include "docstrings.autogen.h"
 
-#include <cstddef>
-#include <memory>
-#include <unordered_map>
+// clang-format off
+/*[clinic input]
+module _pyimmutable
+class _pyimmutable.ImmutableDict "pyimmutable::ImmutableDict::Wrapper*" "pyimmutable::immutableDictTypeObject"
+[clinic start generated code]*/
+/*[clinic end generated code: output=da39a3ee5e6b4b0d input=8f6d2175d96a4fe2]*/
+// clang-format on
 
-#include <immer/map.hpp>
+//////////////////////////////////////////////////////////////////////////////
+// clang-format off
+/*[clinic input]
+@staticmethod
+_pyimmutable.ImmutableDict._get_instance_count
 
-#include "ClassWrapper.h"
-#include "PyObjectRef.h"
-#include "Sha1Hasher.h"
-#include "util.h"
+Return the number of ``ImmutableDict`` objects currently in existence.
 
-namespace pyimmutable {
+This is mainly useful for the ``ImmutableDict`` test suite.
+[clinic start generated code]*/
+
+static PyObject *
+_pyimmutable_ImmutableDict__get_instance_count_impl()
+/*[clinic end generated code: output=45dc5aa5edf23f57 input=4a864a44091565e6]*/
+// clang-format on
+{
+  return PyLong_FromSize_t(
+      pyimmutable::ImmutableDict::Wrapper::getInstanceCount());
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// clang-format off
+/*[clinic input]
+_pyimmutable.ImmutableDict.discard
+
+  key: object
+  /
+
+Return a copy with ``key`` removed.
+
+Returns ``self`` if ``key`` is not present.
+[clinic start generated code]*/
+
+static PyObject *
+_pyimmutable_ImmutableDict_discard(pyimmutable::ImmutableDict::Wrapper*self,
+                                   PyObject *key)
+/*[clinic end generated code: output=2a4db12ba8233045 input=f7a60355bc6f0c32]*/
+// clang-format on
+{
+  return self->discard<false>(key).release();
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// clang-format off
+/*[clinic input]
+_pyimmutable.ImmutableDict.get
+
+  key: object
+  default: object = None
+  /
+
+Return the value for ``key`` if ``key`` is in the dictionary, else ``default``.
+[clinic start generated code]*/
+
+static PyObject *
+_pyimmutable_ImmutableDict_get_impl(pyimmutable::ImmutableDict::Wrapper*self,
+                                    PyObject *key, PyObject *default_value)
+/*[clinic end generated code: output=8a0c1ef395aef988 input=044299bfb3941a78]*/
+// clang-format on
+{
+  return self->get(key, default_value).release();
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// clang-format off
+/*[clinic input]
+_pyimmutable.ImmutableDict.items
+
+Return an iterator over ``(key, value)`` tuples.
+[clinic start generated code]*/
+
+static PyObject *
+_pyimmutable_ImmutableDict_items_impl(pyimmutable::ImmutableDict::Wrapper*self)
+/*[clinic end generated code: output=6f9b02a2729638f8 input=0f34e5b00f40bbd3]*/
+// clang-format on
+{
+  return self->items().release();
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// clang-format off
+/*[clinic input]
+_pyimmutable.ImmutableDict.keys
+
+Return an iterator over the keys in this ``ImmutableDict``.
+[clinic start generated code]*/
+
+static PyObject *
+_pyimmutable_ImmutableDict_keys_impl(pyimmutable::ImmutableDict::Wrapper*self)
+/*[clinic end generated code: output=e298b2af41db2ba4 input=73a6509ff9abe1cd]*/
+// clang-format on
+{
+  return self->keys().release();
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// clang-format off
+/*[clinic input]
+_pyimmutable.ImmutableDict.pop
+
+  key: object
+  /
+
+Return a copy with ``key`` removed.
+
+Raises ``KeyError`` if ``key`` is not present.
+[clinic start generated code]*/
+
+static PyObject *
+_pyimmutable_ImmutableDict_pop(pyimmutable::ImmutableDict::Wrapper*self,
+                               PyObject *key)
+/*[clinic end generated code: output=9a33828a75be1663 input=25ce9604efa6dc98]*/
+// clang-format on
+{
+  return self->discard<true>(key).release();
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// clang-format off
+/*[clinic input]
+_pyimmutable.ImmutableDict.set
+
+  key: object
+  value: object
+  /
+
+Return a copy with ``key`` set to ``value``.
+[clinic start generated code]*/
+
+static PyObject *
+_pyimmutable_ImmutableDict_set_impl(pyimmutable::ImmutableDict::Wrapper*self,
+                                    PyObject *key, PyObject *value)
+/*[clinic end generated code: output=74f7aaabb0dbe898 input=182db1d3c673689a]*/
+// clang-format on
+{
+  return self->set(key, value).release();
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// clang-format off
+/*[clinic input]
+_pyimmutable.ImmutableDict.values
+
+Return an iterator over the values in this ``ImmutableDict``.
+[clinic start generated code]*/
+
+static PyObject *
+_pyimmutable_ImmutableDict_values_impl(pyimmutable::ImmutableDict::Wrapper*self)
+/*[clinic end generated code: output=5d686debdb9abe8c input=56d7ea1539b6dc21]*/
+// clang-format on
+{
+  return self->values().release();
+}
+
+//////////////////////////////////////////////////////////////////////////////
+
+using namespace pyimmutable;
 
 namespace {
 
-struct DictItem {
-  PyObjectRef key;
-  PyObjectRef value;
-  Sha1Hash valueHash;
-  bool isImmutableJson;
-};
-
-bool isImmutableJsonItem(PyObject* key, PyObject* value) {
-  return PyUnicode_CheckExact(key) && isImmutableJsonObject(value);
-}
-
-using MapType = immer::map<Sha1Hash, DictItem, Sha1HashHasher>;
-
-struct ImmutableDictIter {
-  using Wrapper = ClassWrapper<ImmutableDictIter>;
-  using Extractor = PyObjectRef (*)(DictItem const&);
-
-  MapType::const_iterator iter;
-  MapType::const_iterator end;
-  PyObjectRef immutableDict;
-  Extractor extractor;
-
-  ImmutableDictIter(
-      MapType::const_iterator iter,
-      MapType::const_iterator end,
-      PyObjectRef immutableDict,
-      Extractor extractor)
-      : iter(iter),
-        end(end),
-        immutableDict(std::move(immutableDict)),
-        extractor(extractor) {}
-
-  PyObject* next() {
-    if (iter == end) {
-      PyErr_SetNone(PyExc_StopIteration);
-      return nullptr;
-    }
-    return extractor(iter++->second).copy().release();
-  }
-
-  static PyObjectRef keyExtractor(DictItem const& item) {
-    return item.key;
-  }
-
-  static PyObjectRef valueExtractor(DictItem const& item) {
-    return item.value;
-  }
-
-  static PyObjectRef itemExtractor(DictItem const& item) {
-    return buildValue("OO", item.key.get(), item.value.get());
-  }
-};
-
-struct ImmutableDict {
-  using Wrapper = ClassWrapper<ImmutableDict>;
-  static constexpr bool weakrefs_enabled = true;
-  static constexpr bool sha1_lookup_enabled = true;
-
-  MapType const map_;
-  Sha1Hash const sha1;
-  std::size_t immutableJsonItems;
-  bool isImmutableJson;
-  PyObjectRef meta_;
-
-  ImmutableDict(MapType&& mapx, Sha1Hash sha1, std::size_t immutable_json_items)
-      : map_(std::move(mapx)),
-        sha1(sha1),
-        immutableJsonItems(immutable_json_items),
-        isImmutableJson(immutableJsonItems == map_.size()) {}
-
-  PyObject* getItem(PyObject* key) noexcept {
-    auto const h = Sha1Hasher()(key).final();
-    auto const* ptr = map_.find(h);
-    if (!ptr) {
-      PyErr_SetObject(PyExc_KeyError, PyObjectRef{key}.release());
-      return nullptr;
-    } else {
-      return ptr->value.copy().release();
-    }
-  }
-
-  PyObject* get(PyObject* args) noexcept {
-    PyObject* key = nullptr;
-    PyObject* default_value = Py_None;
-
-    if (!PyArg_ParseTuple(args, "O|O", &key, &default_value)) {
-      return NULL;
-    }
-
-    auto const h = Sha1Hasher()(key).final();
-    auto const* ptr = map_.find(h);
-    if (!ptr) {
-      return PyObjectRef{default_value}.release();
-    } else {
-      return ptr->value.copy().release();
-    }
-  }
-
-  PyObject* set(PyObject* args) noexcept {
-    PyObject* key = nullptr;
-    PyObject* value = nullptr;
-
-    if (!PyArg_ParseTuple(args, "OO", &key, &value)) {
-      return NULL;
-    }
-
-    auto const [hkey, hvalue] = keyValueHashes(key, value);
-    auto map_hash = sha1;
-    auto immutable_json_items = immutableJsonItems;
-
-    auto const* ptr = map_.find(hkey);
-    if (ptr) {
-      if (ptr->valueHash == hvalue) {
-        return TypedPyObjectRef{Wrapper::cast(this)}.release();
-      }
-
-      xorHashInPlace(map_hash, ptr->valueHash);
-      if (ptr->isImmutableJson) {
-        --immutable_json_items;
-      }
-    }
-
-    xorHashInPlace(map_hash, hvalue);
-    bool is_immutable_json = isImmutableJsonItem(key, value);
-    if (is_immutable_json) {
-      ++immutable_json_items;
-    }
-
-    return Wrapper::getOrCreate(
-               map_hash,
-               [&]() {
-                 return ImmutableDict{map_.insert(std::make_pair(
-                                          hkey,
-                                          DictItem{PyObjectRef{key},
-                                                   PyObjectRef{value},
-                                                   hvalue,
-                                                   is_immutable_json})),
-                                      map_hash,
-                                      immutable_json_items};
-               })
-        .release();
-  }
-
-  template <bool Raise>
-  PyObject* discard(PyObject* key) noexcept {
-    auto const h = Sha1Hasher()(key).final();
-    auto const* ptr = map_.find(h);
-    if (!ptr) {
-      if (Raise) {
-        PyErr_SetObject(PyExc_KeyError, PyObjectRef{key}.release());
-        return nullptr;
-      }
-      return TypedPyObjectRef{Wrapper::cast(this)}.release();
-    } else {
-      auto map_hash = sha1;
-      auto immutable_json_items = immutableJsonItems;
-      xorHashInPlace(map_hash, ptr->valueHash);
-      if (ptr->isImmutableJson) {
-        --immutable_json_items;
-      }
-      return Wrapper::getOrCreate(
-                 map_hash,
-                 [&]() {
-                   return ImmutableDict{
-                       map_.erase(h), map_hash, immutable_json_items};
-                 })
-          .release();
-    }
-  }
-
-  Py_ssize_t len() {
-    return map_.size();
-  }
-
-  PyObject* iterImpl(ImmutableDictIter::Extractor extractor) {
-    auto iter = ImmutableDictIter::Wrapper::create(
-        map_.begin(),
-        map_.end(),
-        TypedPyObjectRef{Wrapper::cast(this)},
-        extractor);
-
-    return iter.release();
-  }
-
-  PyObject* iter() {
-    return iterImpl(&ImmutableDictIter::keyExtractor);
-  }
-  PyObject* keys(PyObject* /* unused */) {
-    return iterImpl(&ImmutableDictIter::keyExtractor);
-  }
-  PyObject* values(PyObject* /* unused */) {
-    return iterImpl(&ImmutableDictIter::valueExtractor);
-  }
-  PyObject* items(PyObject* /* unused */) {
-    return iterImpl(&ImmutableDictIter::itemExtractor);
-  }
-
-  PyObject* repr() {
-    PyObjectRef result{PyUnicode_FromString("ImmutableDict({"), false};
-    PyObjectRef kv_sep, item_sep;
-
-    if (!result) {
-      return nullptr;
-    }
-
-    if (Py_ReprEnter(Wrapper::pyObject(this)) != 0) {
-      return nullptr;
-    }
-    OnDestroy repr_leave{[this]() { Py_ReprLeave(Wrapper::pyObject(this)); }};
-
-    bool first = true;
-    for (auto const& item : map_) {
-      PyObjectRef key{PyObject_Repr(item.second.key.get()), false};
-      if (!key) {
-        return nullptr;
-      }
-      PyObjectRef value{PyObject_Repr(item.second.value.get()), false};
-      if (!value) {
-        return nullptr;
-      }
-
-      if (!first) {
-        if (!item_sep) {
-          item_sep = PyObjectRef{PyUnicode_FromString(", "), false};
-          if (!item_sep) {
-            return nullptr;
-          }
-        }
-
-        result =
-            PyObjectRef{PyUnicode_Concat(result.get(), item_sep.get()), false};
-        if (!result) {
-          return nullptr;
-        }
-      }
-
-      if (!kv_sep) {
-        kv_sep = PyObjectRef{PyUnicode_FromString(": "), false};
-        if (!kv_sep) {
-          return nullptr;
-        }
-      }
-      result = PyObjectRef{PyUnicode_Concat(result.get(), key.get()), false};
-      if (!result) {
-        return nullptr;
-      }
-      result = PyObjectRef{PyUnicode_Concat(result.get(), kv_sep.get()), false};
-      if (!result) {
-        return nullptr;
-      }
-      result = PyObjectRef{PyUnicode_Concat(result.get(), value.get()), false};
-      if (!result) {
-        return nullptr;
-      }
-
-      first = false;
-    }
-
-    PyObjectRef end{PyUnicode_FromString("})"), false};
-    if (!end) {
-      return nullptr;
-    }
-    result = PyObjectRef{PyUnicode_Concat(result.get(), end.get()), false};
-
-    return result.release();
-  }
-
-  PyObject* isImmutableJsonDict(void* /* unused */) {
-    return PyObjectRef(isImmutableJson ? Py_True : Py_False).release();
-  }
-
-  PyObject* meta(void* /* unused */) {
-    if (!meta_) {
-      meta_ = PyObjectRef{PyDict_New(), false};
-    }
-    return PyObjectRef{meta_}.release();
-  }
-
-  static PyObject* new_(PyTypeObject* type, PyObject* args, PyObject* kwds) {
-    Sha1Hash map_hash{0};
-    std::size_t immutable_json_items = 0;
-    MapType map;
-
-    if (!updateCommon(
-            map_hash, immutable_json_items, map, args, kwds, "ImmutableDict")) {
-      return nullptr;
-    }
-
-    return Wrapper::getOrCreate(
-               map_hash,
-               [&]() {
-                 return ImmutableDict{
-                     std::move(map), map_hash, immutable_json_items};
-               })
-        .release();
-  }
-
-  PyObject* update(PyObject* args, PyObject* kwds) {
-    auto map_hash = sha1;
-    auto map = map_;
-    auto immutable_json_items = immutableJsonItems;
-
-    if (!updateCommon(
-            map_hash, immutable_json_items, map, args, kwds, "update")) {
-      return nullptr;
-    }
-
-    return Wrapper::getOrCreate(
-               map_hash,
-               [&]() {
-                 return ImmutableDict{
-                     std::move(map), map_hash, immutable_json_items};
-               })
-        .release();
-  }
-
-  static bool updateCommon(
-      Sha1Hash& hash,
-      std::size_t& immutable_json_items,
-      MapType& map,
-      PyObject* args,
-      PyObject* kwds,
-      char const* methname) {
-    PyObject* arg = nullptr;
-
-    if (!PyArg_UnpackTuple(args, methname, 0, 1, &arg)) {
-      return false;
-    }
-
-    if (arg) {
-      _Py_IDENTIFIER(keys);
-      PyObject* func = nullptr;
-      if (_PyObject_LookupAttrId(arg, &PyId_keys, &func) < 0) {
-        return false;
-      }
-      if (func) {
-        Py_DECREF(func);
-        if (!merge(hash, immutable_json_items, map, arg)) {
-          return false;
-        }
-      } else {
-        if (!mergeFromSequence(hash, immutable_json_items, map, arg)) {
-          return false;
-        }
-      }
-    }
-
-    if (kwds) {
-      if (PyArg_ValidateKeywordArguments(kwds)) {
-        if (!merge(hash, immutable_json_items, map, kwds)) {
-          return false;
-        }
-      } else {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  static bool merge(
-      Sha1Hash& hash,
-      std::size_t& immutable_json_items,
-      MapType& map,
-      PyObject* arg) {
-    PyObjectRef keys{PyMapping_Keys(arg), false};
-    if (!keys) {
-      return false;
-    }
-
-    PyObjectRef iter{PyObject_GetIter(arg), false};
-    if (!iter) {
-      return false;
-    }
-    keys = {};
-
-    while (auto key = PyObjectRef{PyIter_Next(iter.get()), false}) {
-      PyObjectRef value{PyObject_GetItem(arg, key.get()), false};
-      if (!value) {
-        return false;
-      }
-
-      map_set(hash, immutable_json_items, map, key.get(), value.get());
-    }
-
-    return !PyErr_Occurred();
-  }
-
-  static bool mergeFromSequence(
-      Sha1Hash& hash,
-      std::size_t& immutable_json_items,
-      MapType& map,
-      PyObject* arg) {
-    PyObjectRef iter{PyObject_GetIter(arg), false};
-    if (!iter) {
-      return false;
-    }
-
-    while (auto kv = PyObjectRef{PyIter_Next(iter.get()), false}) {
-      PyObjectRef kvseq{PySequence_Fast(kv.get(), ""), false};
-      if (!kvseq) {
-        return false;
-      }
-
-      if (PySequence_Fast_GET_SIZE(kvseq.get()) != 2) {
-        PyErr_SetString(
-            PyExc_ValueError,
-            "all dictionary update sequences must have length of 2");
-        return false;
-      }
-
-      map_set(
-          hash,
-          immutable_json_items,
-          map,
-          PySequence_Fast_GET_ITEM(kvseq.get(), 0),
-          PySequence_Fast_GET_ITEM(kvseq.get(), 1));
-    }
-
-    return !PyErr_Occurred();
-  }
-
-  static void map_set(
-      Sha1Hash& hash,
-      std::size_t& immutable_json_items,
-      MapType& map,
-      PyObject* key,
-      PyObject* value) {
-    auto const [hkey, hvalue] = keyValueHashes(key, value);
-
-    auto const* ptr = map.find(hkey);
-    if (ptr) {
-      if (ptr->valueHash == hvalue) {
-        return;
-      }
-
-      xorHashInPlace(hash, ptr->valueHash);
-    }
-
-    xorHashInPlace(hash, hvalue);
-    bool is_immutable_json = isImmutableJsonItem(key, value);
-    if (is_immutable_json) {
-      ++immutable_json_items;
-    }
-
-    map = map.insert(std::make_pair(
-        hkey,
-        DictItem{
-            PyObjectRef{key}, PyObjectRef{value}, hvalue, is_immutable_json}));
-  }
-
-  static PyObject* getInstanceCount(PyObject*, PyObject*) {
-    return PyLong_FromSize_t(Wrapper::getInstanceCount());
-  }
-};
-
+// clang-format off
 PyMethodDef ImmutableDict_methods[] = {
-    {"get",
-     ImmutableDict::Wrapper::method<&ImmutableDict::get>(),
-     METH_VARARGS,
-     "docstring"},
-    {"set",
-     ImmutableDict::Wrapper::method<&ImmutableDict::set>(),
-     METH_VARARGS,
-     "docstring"},
-    {"discard",
-     ImmutableDict::Wrapper::method<&ImmutableDict::discard<false>>(),
-     METH_O,
-     "docstring"},
-    {"pop",
-     ImmutableDict::Wrapper::method<&ImmutableDict::discard<true>>(),
-     METH_O,
-     "docstring"},
+    _PYIMMUTABLE_IMMUTABLEDICT__GET_INSTANCE_COUNT_METHODDEF
+    _PYIMMUTABLE_IMMUTABLEDICT_DISCARD_METHODDEF
+    _PYIMMUTABLE_IMMUTABLEDICT_GET_METHODDEF
+    _PYIMMUTABLE_IMMUTABLEDICT_ITEMS_METHODDEF
+    _PYIMMUTABLE_IMMUTABLEDICT_KEYS_METHODDEF
+    _PYIMMUTABLE_IMMUTABLEDICT_POP_METHODDEF
+    _PYIMMUTABLE_IMMUTABLEDICT_SET_METHODDEF
+    _PYIMMUTABLE_IMMUTABLEDICT_VALUES_METHODDEF
     {"update",
      reinterpret_cast<PyCFunction>(static_cast<PyCFunctionWithKeywords>(
          ImmutableDict::Wrapper::method<&ImmutableDict::update>())),
      METH_VARARGS | METH_KEYWORDS,
-     "docstring"},
-    {"keys",
-     ImmutableDict::Wrapper::method<&ImmutableDict::keys>(),
-     METH_NOARGS,
-     "docstring"},
-    {"values",
-     ImmutableDict::Wrapper::method<&ImmutableDict::values>(),
-     METH_NOARGS,
-     "docstring"},
-    {"items",
-     ImmutableDict::Wrapper::method<&ImmutableDict::items>(),
-     METH_NOARGS,
-     "docstring"},
-    {"_get_instance_count",
-     &ImmutableDict::getInstanceCount,
-     METH_NOARGS | METH_STATIC,
-     "docstring"},
+     docstring_ImmutableDict_update
+   },
     {nullptr}};
+// clang-format on
 
 PyMappingMethods ImmutableDict_mappingMethods = {
     .mp_length = ImmutableDict::Wrapper::method<&ImmutableDict::len>(),
@@ -545,17 +223,18 @@ PyGetSetDef ImmutableDict_getset[] = {
     {"isImmutableJson",
      ImmutableDict::Wrapper::method<&ImmutableDict::isImmutableJsonDict>(),
      nullptr,
-     "docstring",
+     docstring_ImmutableDict_isImmutableJson,
      nullptr},
     {"meta",
      ImmutableDict::Wrapper::method<&ImmutableDict::meta>(),
      nullptr,
-     "docstring",
+     docstring_ImmutableDict_meta,
      nullptr},
     {nullptr}};
 
 } // namespace
 
+namespace pyimmutable {
 bool isImmutableJsonDict(PyObject* obj) {
   return ImmutableDict::Wrapper::cast(obj)->isImmutableJson;
 }
@@ -566,11 +245,11 @@ PyTypeObject ImmutableDict::Wrapper::typeObject = {
         .tp_name = "ImmutableDict",
     .tp_repr = ImmutableDict::Wrapper::method<&ImmutableDict::repr>(),
     .tp_as_mapping = &ImmutableDict_mappingMethods,
-    .tp_doc = "(to be written)",
-    .tp_iter = ImmutableDict::Wrapper::method<&ImmutableDict::iter>(),
+    .tp_doc = docstring_ImmutableDict,
+    .tp_iter = ImmutableDict::Wrapper::method<&ImmutableDict::keys>(),
     .tp_methods = ImmutableDict_methods,
     .tp_getset = ImmutableDict_getset,
-    .tp_new = &ImmutableDict::new_,
+    .tp_new = mangleReturnValue<&ImmutableDict::new_>(),
 };
 PyTypeObject* getImmutableDictTypeObject() {
   return ImmutableDict::Wrapper::initType();

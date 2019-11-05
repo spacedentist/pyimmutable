@@ -1,4 +1,5 @@
 recursive-include cpp *
+exclude cpp/docstrings.autogen.h
 include lib/immer/LICENSE
 include lib/immer/README.rst
 recursive-include lib/immer/immer *

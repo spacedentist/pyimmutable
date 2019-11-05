@@ -1,4 +1,42 @@
 from setuptools import setup, Extension
+import setuptools.command.build_ext
+
+
+class BuildExt(setuptools.command.build_ext.build_ext):
+    def build_extension(self, *args, **kwargs):
+        compile_docstrings()
+        return super().build_extension(*args, **kwargs)
+
+
+def compile_docstrings():
+    with open("cpp/docstrings.txt") as input, open(
+        "cpp/docstrings.autogen.h", "w"
+    ) as output:
+        key = None
+        text = ""
+
+        def write():
+            if key:
+                stripped_text = "\n".join(
+                    line.rstrip() for line in text.rstrip().split("\n")
+                )
+                output.write(f"static constexpr char const* {key} = ")
+                delim = "TEXT"
+                x = 0
+                while f"){ delim }" in stripped_text:
+                    delim = f"TEXT{x}"
+                    x += 1
+                output.write(f'R"{ delim }({ stripped_text }){ delim }";\n')
+
+        for line in input:
+            if line.startswith("<@>"):
+                write()
+                key = line[3:].strip()
+                text = ""
+            else:
+                text += line
+        write()
+
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
@@ -32,6 +70,7 @@ setup(
                 "cpp/ImmutableList.h",
                 "cpp/PyObjectRef.h",
                 "cpp/util.h",
+                "cpp/docstrings.txt",
             ],
             language="c++",
             include_dirs=["lib/immer"],
@@ -47,4 +86,5 @@ setup(
     ],
     test_suite="pyimmutable.tests",
     setup_requires=["tox"],
+    cmdclass={"build_ext": BuildExt},
 )

@@ -72,6 +72,8 @@ class TypedPyObjectRef final {
     }
   }
 
+  TypedPyObjectRef(std::nullptr_t const&) noexcept : TypedPyObjectRef() {}
+
   template <
       typename U = T,
       typename = std::enable_if_t<!std::is_same_v<U, PyObject>>>

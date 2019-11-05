@@ -1,0 +1,87 @@
+<@> docstring_ImmutableDict_update
+update($self, mapping_or_iterable=(), /, **kwargs)
+--
+
+Return a new ``ImmutableDict`` on the basis of this one, with keys updated from
+a mapping or iterable of ``(key, value)`` tuples and/or keyword arguments.
+
+
+<@> docstring_ImmutableDict_isImmutableJson
+``True`` if ``self`` only contains immutable, JSON-serializable data.
+
+For this to be True, the ``ImmutableDict`` must only have keys of type ``str``.
+Also, all values must be either ``None``, or of type ``bool``, ``str``, ``int``,
+``float``, or be an ``ImmutableDict`` or an ``ImmutableList`` which itself has
+``isImmutableJson`` set to ``True``.
+
+
+<@> docstring_ImmutableDict_meta
+A unique dictionary attached to this ``ImmutableDict``
+
+This property returns a Python dictionary that is attached to the
+``ImmutableDict`` object. The same dictionary is used for the entire lifetime of
+this ``ImmutableDict`` object. All references to an ``ImmutableDict`` with the
+same contents indeed refer to the same ``ImmutableDict`` object, and therefore
+all share the same ``meta`` dictionary. ``ImmutableDict`` objects may be
+garbage-collected when there no reference is kept to them, and at that point the
+``meta`` dictionary gets deleted, too.
+
+
+<@> docstring_ImmutableDict
+ImmutableDict(mapping_or_iterable=(), /, **kwargs)
+--
+
+Return an ``ImmutableDict`` object initialized from a mapping or iterable (if
+given) and/or keyword arguments. If called with no arguments, returns the empty
+``ImmutableDict``.
+
+An ``ImmutableDict`` is, as the name suggests, immutable. The data stored in it
+remains the same for all of its lifetime. An ``ImmutableDict`` has methods to
+create further ``ImmutableDict`` objects as modifications of the current one.
+
+There is only ever one ``ImmutableDict`` object that contains the same data. For
+example:
+
+    >>> d1 = ImmutableDict().set("a", 1).set("b", 2)
+    >>> d2 = ImmutableDict(a=1, b=2)
+    >>> d1 is d2
+    True
+
+
+<@> docstring_ImmutableList_isImmutableJson
+``True`` if this ``ImmutableList`` only contains immutable, JSON-serializable
+data.
+
+For this to be ``True``, the ``ImmutableList`` must only contain values that are
+either ``None``, or of type ``bool``, ``str``, ``int``, ``float``, or are an
+``ImmutableDict`` or an ``immutableList`` which itself has ``isImmutableJson``
+set to ``True``.
+
+
+<@> docstring_ImmutableList_meta
+This property returns a Python dictionary that is attached to the
+``ImmutableList`` object. The same dictionary is used for the entire lifetime of
+this ``ImmutableList`` object. All references to an ``ImmutableList`` with the
+same contents indeed refer to the same ``ImmutableList`` object, and therefore
+all share the same ``meta`` dictionary. ``ImmutableList`` objects may be
+garbage-collected when there no reference is kept to them, and at that point the
+``meta`` dictionary gets deleted, too.
+
+<@> docstring_ImmutableList
+ImmutableList(sequence=(), /)
+--
+
+Return an ``ImmutableList`` object initialized from ``sequence`` (if given). If
+called with no arguments, returns the empty ``ImmutableList``.
+
+An ``ImmutableList`` is, as the name suggests, immutable. The data stored in it
+remains the same for all of its lifetime. An ``ImmutableList`` has methods to
+create further ``ImmutableList`` objects as modifications of the current one.
+
+There is only ever one ``ImmutableList`` object that contains the same data. For
+example:
+
+    >>> l1 = ImmutableList().append('a').append(2)
+    >>> l2 = ImmutableList(['a', 2])
+    >>> l1 is l2
+    True

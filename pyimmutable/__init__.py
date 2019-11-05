@@ -27,7 +27,7 @@ collections.abc.Sequence.register(ImmutableList)
 
 def make_immutable(object):
     """\
-Make a deep copy of nested sequences/mappings using ``list``s and ``dict``s.
+Make a deep copy of nested sequences/mappings using ``list`` and ``dict``.
 
 A nested structure using ``ImmutableDict``/``ImmutableList`` objects is turned
 into an equivalent structure using ``dict`` and ``list``, e.g. for passing
@@ -45,7 +45,7 @@ to ``json.dump``."""
 
 def make_mutable(object):
     """\
-Make a deep copy using ``ImmutableList``s and ``ImmutableDict``s.
+Make a deep copy using ``ImmutableList`` and ``ImmutableDict``.
 
 A nested structure using is turned into one using ``ImmutableList`` for every
 sequence and ``ImmutableDict`` for every mapping."""

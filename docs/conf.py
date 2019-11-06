@@ -13,7 +13,7 @@
 # import os
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
-
+from pyimmutable.__version__ import version as _version
 
 # -- Project information -----------------------------------------------------
 
@@ -22,7 +22,7 @@ copyright = " Sven Over"
 author = "Sven Over"
 
 # The full version, including alpha/beta/rc tags
-release = "0.1.4"
+release = _version
 
 
 # -- General configuration ---------------------------------------------------

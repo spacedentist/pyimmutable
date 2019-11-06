@@ -41,15 +41,20 @@ def compile_docstrings():
 with open("README.rst", "r") as fh:
     long_description = fh.read()
 
+with open("pyimmutable/__version__.py", "r") as fh:
+    versiondict = {"__builtins__": {}}
+    exec(fh.read(), versiondict)
+    version = versiondict["version"]
+
 setup(
     name="pyimmutable",
-    version="0.1.4",
+    version=version,
     description="Immutable dict and lists",
     long_description=long_description,
     long_description_content_type="text/x-rst",
     url="https://github.com/spacedentist/pyimmutable",
     download_url=(
-        "https://github.com/spacedentist/pyimmutable/archive/v0.1.4.tar.gz"
+        f"https://github.com/spacedentist/pyimmutable/archive/{version}.tar.gz"
     ),
     author="Sven Over",
     author_email="sp@cedenti.st",

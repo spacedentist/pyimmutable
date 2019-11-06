@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>Welcome to pyimmutable’s documentation! &#8212; pyimmutable 0.1.4 documentation</title>
+    <title>pyimmutable Documentation &#8212; pyimmutable 0.1.4 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -14,7 +14,7 @@
     <script type="text/javascript" src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="pyimmutable package" href="pyimmutable.html" />
+    <link rel="next" title="pyimmutable API" href="API.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -31,16 +31,50 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="welcome-to-pyimmutable-s-documentation">
-<h1>Welcome to pyimmutable’s documentation!<a class="headerlink" href="#welcome-to-pyimmutable-s-documentation" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="pyimmutable-documentation">
+<h1>pyimmutable Documentation<a class="headerlink" href="#pyimmutable-documentation" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="pyimmutable.html">pyimmutable package</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="pyimmutable.html#module-pyimmutable">Module contents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="API.html">pyimmutable API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="API.html#immutabledict">ImmutableDict</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API.html#immutablelist">ImmutableList</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API.html#module-pyimmutable">Auxiliary Functions</a></li>
 </ul>
 </li>
 </ul>
+</div>
+</div>
+<div class="section" id="introduction">
+<h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
+<p>pyimmutable offers two immutable data types for Python3.6+: a mapping (similar to <code class="docutils literal notranslate"><span class="pre">dict</span></code>, but, obviously immutable) and a sequence (like <code class="docutils literal notranslate"><span class="pre">list</span></code>). It is implemented in C++, using the faboulous “<a class="reference external" href="https://github.com/arximboldi/immer">immer</a>” library for efficiently implementing the immutable data structures.</p>
+<p>When your Python code passes an <code class="docutils literal notranslate"><span class="pre">ImmutableDict</span></code> or an <code class="docutils literal notranslate"><span class="pre">ImmutableList</span></code> to some function, you do not have to worry that function may alter the contents of that object. A reference to such an immutable data structure is guaranteed to forever point to the same data. If you do want to change the contents of your data, you have to update the reference. So instead of <code class="docutils literal notranslate"><span class="pre">data[&quot;foo&quot;]</span> <span class="pre">=</span> <span class="pre">&quot;bar&quot;</span></code> you will have to write <code class="docutils literal notranslate"><span class="pre">data</span> <span class="pre">=</span> <span class="pre">data.set(&quot;foo&quot;,</span> <span class="pre">&quot;bar&quot;)</span></code>. As a result, your <code class="docutils literal notranslate"><span class="pre">data</span></code> variable will be updated, but any other variable that referenced <code class="docutils literal notranslate"><span class="pre">data</span></code> before the change will keep referencing the old <code class="docutils literal notranslate"><span class="pre">data</span></code>—the one before the update.</p>
+<p>Immutable data structures like this allow for some interesting optimization features. For example, two <code class="docutils literal notranslate"><span class="pre">ImmutableDict</span></code> objects with identical content are not actually two objects but one and the same object, and the same is true for <code class="docutils literal notranslate"><span class="pre">ImmutableList</span></code>. If any operation returns an <code class="docutils literal notranslate"><span class="pre">ImmutableDict</span></code> or an <code class="docutils literal notranslate"><span class="pre">ImmutableList</span></code> that is identical to one that has been constructed earlier, the existing one is returned instead of a new one being constructed. This entails that e.g. two <code class="docutils literal notranslate"><span class="pre">ImmutableDict</span></code> objects, even if they represent big trees of data, can be compared using the Python <code class="docutils literal notranslate"><span class="pre">is</span></code> operation.</p>
+<p>pyimmutable has a stricter requirement for equality than the usual Python convention. In a nutshell, for pyimmutable, the integer <code class="docutils literal notranslate"><span class="pre">3</span></code> and the float <code class="docutils literal notranslate"><span class="pre">3.0</span></code> are not equal. An <code class="docutils literal notranslate"><span class="pre">ImmutableDict</span></code> can store different values for the keys <code class="docutils literal notranslate"><span class="pre">3</span></code> and <code class="docutils literal notranslate"><span class="pre">3.0</span></code>, whereas a normal Python <code class="docutils literal notranslate"><span class="pre">dict</span></code> cannot. You can use objects of <cite>any</cite> type as keys and values, but only identical objects are considered equal. There is an exception to this rule for a small set of built-in types (<cite>int</cite>, <cite>float</cite>, <cite>str</cite>, <cite>bytes</cite>, <cite>tuple</cite>—all of which are immutable themselves), which are considered equal when they contain the same data.</p>
+<div class="section" id="example">
+<h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pyimmutable</span> <span class="k">import</span> <span class="n">ImmutableDict</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d1</span> <span class="o">=</span> <span class="n">ImmutableDict</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">d1</span></code> is an empty immutable dictionary.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">d2</span> <span class="o">=</span> <span class="n">d1</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;foo&quot;</span><span class="p">,</span> <span class="s2">&quot;bar&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">d2</span></code> contains one key (“foo”) whose value is “bar”. <code class="docutils literal notranslate"><span class="pre">d1</span></code> is remains an empty immutable dictionary.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">d3</span> <span class="o">=</span> <span class="n">d2</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;fox&quot;</span><span class="p">,</span> <span class="s2">&quot;baz&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">d3</span></code> now contains two keys (“foo”, “fox”) with values “bar” and “baz”, respectively. <code class="docutils literal notranslate"><span class="pre">d1</span></code> and <code class="docutils literal notranslate"><span class="pre">d2</span></code> remain unchanged.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">d4</span> <span class="o">=</span> <span class="n">ImmutableDict</span><span class="p">(</span><span class="n">foo</span><span class="o">=</span><span class="s2">&quot;bar&quot;</span><span class="p">,</span> <span class="n">fox</span><span class="o">=</span><span class="s2">&quot;baz&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">d4</span></code> is a newly constructed <code class="docutils literal notranslate"><span class="pre">ImmutableDict</span></code>, initialized with values <code class="docutils literal notranslate"><span class="pre">foo</span></code> and <code class="docutils literal notranslate"><span class="pre">fox</span></code> that happen to be the same as in <code class="docutils literal notranslate"><span class="pre">d3</span></code>. In such a case, pyimmutable does not actually construct a <cite>new</cite> <code class="docutils literal notranslate"><span class="pre">ImmutableDict</span></code> for us, but returns the <code class="docutils literal notranslate"><span class="pre">d3</span></code> object from earlier.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">d3</span> <span class="ow">is</span> <span class="n">d4</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>This is fine, because <code class="docutils literal notranslate"><span class="pre">ImmutableDict</span></code> objects are immutable, and since the objects referred to by <code class="docutils literal notranslate"><span class="pre">d3</span></code> and <code class="docutils literal notranslate"><span class="pre">d4</span></code> can never be mutated and therefore will always have the same contents, <code class="docutils literal notranslate"><span class="pre">d3</span></code> and <code class="docutils literal notranslate"><span class="pre">d4</span></code> might as well refer to the same object.</p>
 </div>
 </div>
 <div class="section" id="indices-and-tables">
@@ -65,19 +99,38 @@
 
 
 
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=spacedentist&repo=pyimmutable&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+    
+
+<p>
+<a class="badge" href="https://travis-ci.org/spacedentist/pyimmutable">
+    <img
+        alt="https://secure.travis-ci.org/spacedentist/pyimmutable.svg?branch=master"
+        src="https://secure.travis-ci.org/spacedentist/pyimmutable.svg?branch=master"
+    />
+</a>
+</p>
 
 
 <h3>Navigation</h3>
 <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="pyimmutable.html">pyimmutable package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="API.html">pyimmutable API</a></li>
 </ul>
 
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
   <li><a href="#">Documentation overview</a><ul>
-      <li>Next: <a href="pyimmutable.html" title="next chapter">pyimmutable package</a></li>
+      <li>Next: <a href="API.html" title="next chapter">pyimmutable API</a></li>
   </ul></li>
 </ul>
 </div>
@@ -115,6 +168,10 @@
           rel="nofollow">Page source</a>
     </div>
 
+    
+    <a href="https://github.com/spacedentist/pyimmutable" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
     
 
     

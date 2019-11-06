@@ -1,0 +1,343 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>pyimmutable package &#8212; pyimmutable 0.1.4 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Welcome to pyimmutable’s documentation!" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="pyimmutable-package">
+<h1>pyimmutable package<a class="headerlink" href="#pyimmutable-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-pyimmutable">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-pyimmutable" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pyimmutable.ImmutableDict">
+<em class="property">class </em><code class="sig-prename descclassname">pyimmutable.</code><code class="sig-name descname">ImmutableDict</code><a class="headerlink" href="#pyimmutable.ImmutableDict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return an <code class="docutils literal notranslate"><span class="pre">ImmutableDict</span></code> object initialized from a mapping or iterable (if
+given) and/or keyword arguments. If called with no arguments, returns the empty
+<code class="docutils literal notranslate"><span class="pre">ImmutableDict</span></code>.</p>
+<p>An <code class="docutils literal notranslate"><span class="pre">ImmutableDict</span></code> is, as the name suggests, immutable. The data stored in it
+remains the same for all of its lifetime. An <code class="docutils literal notranslate"><span class="pre">ImmutableDict</span></code> has methods to
+create further <code class="docutils literal notranslate"><span class="pre">ImmutableDict</span></code> objects as modifications of the current one.</p>
+<p>There is only ever one <code class="docutils literal notranslate"><span class="pre">ImmutableDict</span></code> object that contains the same data. For
+example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">d1</span> <span class="o">=</span> <span class="n">ImmutableDict</span><span class="p">()</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d2</span> <span class="o">=</span> <span class="n">ImmutableDict</span><span class="p">(</span><span class="n">a</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d1</span> <span class="ow">is</span> <span class="n">d2</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="pyimmutable.ImmutableDict.discard">
+<code class="sig-name descname">discard</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyimmutable.ImmutableDict.discard" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a copy with key removed.</p>
+<p>Returns self if key is not present.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyimmutable.ImmutableDict.get">
+<code class="sig-name descname">get</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyimmutable.ImmutableDict.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the value for key if key is in the dictionary, else default.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyimmutable.ImmutableDict.isImmutableJson">
+<code class="sig-name descname">isImmutableJson</code><a class="headerlink" href="#pyimmutable.ImmutableDict.isImmutableJson" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">True</span></code> if <code class="docutils literal notranslate"><span class="pre">self</span></code> only contains immutable, JSON-serializable data.</p>
+<p>For this to be True, the <code class="docutils literal notranslate"><span class="pre">ImmutableDict</span></code> must only have keys of type <code class="docutils literal notranslate"><span class="pre">str</span></code>.
+Also, all values must be either <code class="docutils literal notranslate"><span class="pre">None</span></code>, or of type <code class="docutils literal notranslate"><span class="pre">bool</span></code>, <code class="docutils literal notranslate"><span class="pre">str</span></code>, <code class="docutils literal notranslate"><span class="pre">int</span></code>,
+<code class="docutils literal notranslate"><span class="pre">float</span></code>, or be an <code class="docutils literal notranslate"><span class="pre">ImmutableDict</span></code> or an <code class="docutils literal notranslate"><span class="pre">ImmutableList</span></code> which itself has
+<code class="docutils literal notranslate"><span class="pre">isImmutableJson</span></code> set to <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyimmutable.ImmutableDict.items">
+<code class="sig-name descname">items</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyimmutable.ImmutableDict.items" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return an iterator over (key, value) tuples.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyimmutable.ImmutableDict.keys">
+<code class="sig-name descname">keys</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyimmutable.ImmutableDict.keys" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return an iterator over the keys in this ImmutableDict.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyimmutable.ImmutableDict.meta">
+<code class="sig-name descname">meta</code><a class="headerlink" href="#pyimmutable.ImmutableDict.meta" title="Permalink to this definition">¶</a></dt>
+<dd><p>A unique dictionary attached to this <code class="docutils literal notranslate"><span class="pre">ImmutableDict</span></code></p>
+<p>This property returns a Python dictionary that is attached to the
+<code class="docutils literal notranslate"><span class="pre">ImmutableDict</span></code> object. The same dictionary is used for the entire lifetime of
+this <code class="docutils literal notranslate"><span class="pre">ImmutableDict</span></code> object. All references to an <code class="docutils literal notranslate"><span class="pre">ImmutableDict</span></code> with the
+same contents indeed refer to the same <code class="docutils literal notranslate"><span class="pre">ImmutableDict</span></code> object, and therefore
+all share the same <code class="docutils literal notranslate"><span class="pre">meta</span></code> dictionary. <code class="docutils literal notranslate"><span class="pre">ImmutableDict</span></code> objects may be
+garbage-collected when there no reference is kept to them, and at that point the
+<code class="docutils literal notranslate"><span class="pre">meta</span></code> dictionary gets deleted, too.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyimmutable.ImmutableDict.pop">
+<code class="sig-name descname">pop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyimmutable.ImmutableDict.pop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a copy with key removed.</p>
+<p>Raises KeyError if key is not present.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyimmutable.ImmutableDict.set">
+<code class="sig-name descname">set</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyimmutable.ImmutableDict.set" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a copy with key set to value.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyimmutable.ImmutableDict.update">
+<code class="sig-name descname">update</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyimmutable.ImmutableDict.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a new <code class="docutils literal notranslate"><span class="pre">ImmutableDict</span></code> on the basis of this one, with keys updated from
+a mapping or iterable of <code class="docutils literal notranslate"><span class="pre">(key,</span> <span class="pre">value)</span></code> tuples and/or keyword arguments.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyimmutable.ImmutableDict.values">
+<code class="sig-name descname">values</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyimmutable.ImmutableDict.values" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return an iterator over the values in this ImmutableDict.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pyimmutable.ImmutableList">
+<em class="property">class </em><code class="sig-prename descclassname">pyimmutable.</code><code class="sig-name descname">ImmutableList</code><a class="headerlink" href="#pyimmutable.ImmutableList" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return an <code class="docutils literal notranslate"><span class="pre">ImmutableList</span></code> object initialized from <code class="docutils literal notranslate"><span class="pre">sequence</span></code> (if given). If
+called with no arguments, returns the empty <code class="docutils literal notranslate"><span class="pre">ImmutableList</span></code>.</p>
+<p>An <code class="docutils literal notranslate"><span class="pre">ImmutableList</span></code> is, as the name suggests, immutable. The data stored in it
+remains the same for all of its lifetime. An <code class="docutils literal notranslate"><span class="pre">ImmutableList</span></code> has methods to
+create further <code class="docutils literal notranslate"><span class="pre">ImmutableList</span></code> objects as modifications of the current one.</p>
+<p>There is only ever one <code class="docutils literal notranslate"><span class="pre">ImmutableList</span></code> object that contains the same data. For
+example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">l1</span> <span class="o">=</span> <span class="n">ImmutableList</span><span class="p">()</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">l2</span> <span class="o">=</span> <span class="n">ImmutableList</span><span class="p">([</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">l1</span> <span class="ow">is</span> <span class="n">l2</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="pyimmutable.ImmutableList.append">
+<code class="sig-name descname">append</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyimmutable.ImmutableList.append" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a copy with the given value appended.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyimmutable.ImmutableList.count">
+<code class="sig-name descname">count</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyimmutable.ImmutableList.count" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return number of occurrences of value.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyimmutable.ImmutableList.extend">
+<code class="sig-name descname">extend</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyimmutable.ImmutableList.extend" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a copy extended by appending elements from the iterable.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyimmutable.ImmutableList.index">
+<code class="sig-name descname">index</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyimmutable.ImmutableList.index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return first index of value.</p>
+<p>Raises ValueError if the value is not present.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyimmutable.ImmutableList.isImmutableJson">
+<code class="sig-name descname">isImmutableJson</code><a class="headerlink" href="#pyimmutable.ImmutableList.isImmutableJson" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">True</span></code> if this <code class="docutils literal notranslate"><span class="pre">ImmutableList</span></code> only contains immutable, JSON-serializable
+data.</p>
+<p>For this to be <code class="docutils literal notranslate"><span class="pre">True</span></code>, the <code class="docutils literal notranslate"><span class="pre">ImmutableList</span></code> must only contain values that are
+either <code class="docutils literal notranslate"><span class="pre">None</span></code>, or of type <code class="docutils literal notranslate"><span class="pre">bool</span></code>, <code class="docutils literal notranslate"><span class="pre">str</span></code>, <code class="docutils literal notranslate"><span class="pre">int</span></code>, <code class="docutils literal notranslate"><span class="pre">float</span></code>, or are an
+<code class="docutils literal notranslate"><span class="pre">ImmutableDict</span></code> or an <code class="docutils literal notranslate"><span class="pre">immutableList</span></code> which itself has <code class="docutils literal notranslate"><span class="pre">isImmutableJson</span></code>
+set to <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyimmutable.ImmutableList.meta">
+<code class="sig-name descname">meta</code><a class="headerlink" href="#pyimmutable.ImmutableList.meta" title="Permalink to this definition">¶</a></dt>
+<dd><p>This property returns a Python dictionary that is attached to the
+<code class="docutils literal notranslate"><span class="pre">ImmutableList</span></code> object. The same dictionary is used for the entire lifetime of
+this <code class="docutils literal notranslate"><span class="pre">ImmutableList</span></code> object. All references to an <code class="docutils literal notranslate"><span class="pre">ImmutableList</span></code> with the
+same contents indeed refer to the same <code class="docutils literal notranslate"><span class="pre">ImmutableList</span></code> object, and therefore
+all share the same <code class="docutils literal notranslate"><span class="pre">meta</span></code> dictionary. <code class="docutils literal notranslate"><span class="pre">ImmutableList</span></code> objects may be
+garbage-collected when there no reference is kept to them, and at that point the
+<code class="docutils literal notranslate"><span class="pre">meta</span></code> dictionary gets deleted, too.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyimmutable.ImmutableList.set">
+<code class="sig-name descname">set</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyimmutable.ImmutableList.set" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a copy with item index set to value.</p>
+<p>Raises IndexError if the index is outside the range of existing elements.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="pyimmutable.json_dump">
+<code class="sig-prename descclassname">pyimmutable.</code><code class="sig-name descname">json_dump</code><span class="sig-paren">(</span><em class="sig-param">obj</em>, <em class="sig-param">fp</em>, <em class="sig-param">*</em>, <em class="sig-param">skipkeys=False</em>, <em class="sig-param">ensure_ascii=True</em>, <em class="sig-param">check_circular=True</em>, <em class="sig-param">allow_nan=True</em>, <em class="sig-param">cls=None</em>, <em class="sig-param">indent=None</em>, <em class="sig-param">separators=None</em>, <em class="sig-param">default=None</em>, <em class="sig-param">sort_keys=False</em>, <em class="sig-param">**kw</em><span class="sig-paren">)</span><a class="headerlink" href="#pyimmutable.json_dump" title="Permalink to this definition">¶</a></dt>
+<dd><p>Serialize <cite>obj`</cite> as a JSON and write to <code class="docutils literal notranslate"><span class="pre">fp</span></code>.</p>
+<p>This function makes a deep copy of the object, replacing all sequences
+(including <code class="docutils literal notranslate"><span class="pre">ImmutableList</span></code>) with lists and all mappings (including
+<code class="docutils literal notranslate"><span class="pre">ImmutableDict</span></code>) with dicts. The result is passed to <code class="docutils literal notranslate"><span class="pre">json.dump</span></code>.</p>
+<p>All arguments are passed to <code class="docutils literal notranslate"><span class="pre">json.dump</span></code>. This function may be replaced by
+an efficient, native implementation in a later version of pyimmutable, which
+may not support the same keyword arguments.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyimmutable.json_dumps">
+<code class="sig-prename descclassname">pyimmutable.</code><code class="sig-name descname">json_dumps</code><span class="sig-paren">(</span><em class="sig-param">obj</em>, <em class="sig-param">*</em>, <em class="sig-param">skipkeys=False</em>, <em class="sig-param">ensure_ascii=True</em>, <em class="sig-param">check_circular=True</em>, <em class="sig-param">allow_nan=True</em>, <em class="sig-param">cls=None</em>, <em class="sig-param">indent=None</em>, <em class="sig-param">separators=None</em>, <em class="sig-param">default=None</em>, <em class="sig-param">sort_keys=False</em>, <em class="sig-param">**kw</em><span class="sig-paren">)</span><a class="headerlink" href="#pyimmutable.json_dumps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Serialize <code class="docutils literal notranslate"><span class="pre">obj</span></code> to a JSON formatted <code class="docutils literal notranslate"><span class="pre">str</span></code>.</p>
+<p>This function makes a deep copy of the object, replacing all sequences
+(including <code class="docutils literal notranslate"><span class="pre">ImmutableList</span></code>) with lists and all mappings (including
+<code class="docutils literal notranslate"><span class="pre">ImmutableDict</span></code>) with dicts. The result is passed to <code class="docutils literal notranslate"><span class="pre">json.dumps</span></code>.</p>
+<p>All arguments are passed to <code class="docutils literal notranslate"><span class="pre">json.dumps</span></code>. This function may be replaced by
+an efficient, native implementation in a later version of pyimmutable, which
+may not support the same keyword arguments.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyimmutable.json_load">
+<code class="sig-prename descclassname">pyimmutable.</code><code class="sig-name descname">json_load</code><span class="sig-paren">(</span><em class="sig-param">fp</em>, <em class="sig-param">*</em>, <em class="sig-param">cls=None</em>, <em class="sig-param">object_hook=None</em>, <em class="sig-param">parse_float=None</em>, <em class="sig-param">parse_int=None</em>, <em class="sig-param">parse_constant=None</em>, <em class="sig-param">object_pairs_hook=None</em>, <em class="sig-param">**kw</em><span class="sig-paren">)</span><a class="headerlink" href="#pyimmutable.json_load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read JSON from <code class="docutils literal notranslate"><span class="pre">fp</span></code> and deserialize as immutable data.</p>
+<p>This function calls <code class="docutils literal notranslate"><span class="pre">json.load</span></code> and then builds a (potentially nested)
+structure of <code class="docutils literal notranslate"><span class="pre">ImmutableDict</span></code>/<code class="docutils literal notranslate"><span class="pre">ImmutableList</span></code> objects from the returned
+object.</p>
+<p>All arguments are passed to <code class="docutils literal notranslate"><span class="pre">json.load</span></code>. This function may be replaced by
+an efficient, native implementation in a later version of pyimmutable, which
+may not support the same keyword arguments.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyimmutable.json_loads">
+<code class="sig-prename descclassname">pyimmutable.</code><code class="sig-name descname">json_loads</code><span class="sig-paren">(</span><em class="sig-param">s</em>, <em class="sig-param">*</em>, <em class="sig-param">encoding=None</em>, <em class="sig-param">cls=None</em>, <em class="sig-param">object_hook=None</em>, <em class="sig-param">parse_float=None</em>, <em class="sig-param">parse_int=None</em>, <em class="sig-param">parse_constant=None</em>, <em class="sig-param">object_pairs_hook=None</em>, <em class="sig-param">**kw</em><span class="sig-paren">)</span><a class="headerlink" href="#pyimmutable.json_loads" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deserialize JSON string as immutable data.</p>
+<p>This function calls <code class="docutils literal notranslate"><span class="pre">json.loads</span></code> and then builds a (potentially nested)
+structure of <code class="docutils literal notranslate"><span class="pre">ImmutableDict</span></code>/<code class="docutils literal notranslate"><span class="pre">ImmutableList</span></code> objects from the returned
+object.</p>
+<p>All arguments are passed to <code class="docutils literal notranslate"><span class="pre">json.loads</span></code>. This function may be replaced by
+an efficient, native implementation in a later version of pyimmutable, which
+may not support the same keyword arguments.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyimmutable.make_immutable">
+<code class="sig-prename descclassname">pyimmutable.</code><code class="sig-name descname">make_immutable</code><span class="sig-paren">(</span><em class="sig-param">object</em><span class="sig-paren">)</span><a class="headerlink" href="#pyimmutable.make_immutable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make a deep copy of nested sequences/mappings using <code class="docutils literal notranslate"><span class="pre">list</span></code> and <code class="docutils literal notranslate"><span class="pre">dict</span></code>.</p>
+<p>A nested structure using <code class="docutils literal notranslate"><span class="pre">ImmutableDict</span></code>/<code class="docutils literal notranslate"><span class="pre">ImmutableList</span></code> objects is turned
+into an equivalent structure using <code class="docutils literal notranslate"><span class="pre">dict</span></code> and <code class="docutils literal notranslate"><span class="pre">list</span></code>, e.g. for passing
+to <code class="docutils literal notranslate"><span class="pre">json.dump</span></code>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyimmutable.make_mutable">
+<code class="sig-prename descclassname">pyimmutable.</code><code class="sig-name descname">make_mutable</code><span class="sig-paren">(</span><em class="sig-param">object</em><span class="sig-paren">)</span><a class="headerlink" href="#pyimmutable.make_mutable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make a deep copy using <code class="docutils literal notranslate"><span class="pre">ImmutableList</span></code> and <code class="docutils literal notranslate"><span class="pre">ImmutableDict</span></code>.</p>
+<p>A nested structure using is turned into one using <code class="docutils literal notranslate"><span class="pre">ImmutableList</span></code> for every
+sequence and <code class="docutils literal notranslate"><span class="pre">ImmutableDict</span></code> for every mapping.</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">pyimmutable</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">pyimmutable package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-pyimmutable">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Welcome to pyimmutable’s documentation!</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy; Sven Over.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/pyimmutable.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

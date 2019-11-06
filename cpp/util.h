@@ -33,9 +33,6 @@ namespace pyimmutable {
 template <typename>
 class ClassWrapper;
 
-template <typename>
-class Sha1UnifiedClassWrapper;
-
 template <typename T>
 struct IsPyObject {
   static constexpr bool value = offsetof(T, ob_base) == 0;
@@ -46,9 +43,6 @@ struct IsPyObject<PyObject> : std::true_type {};
 
 template <typename T>
 struct IsPyObject<ClassWrapper<T>> : std::true_type {};
-
-template <typename T>
-struct IsPyObject<Sha1UnifiedClassWrapper<T>> : std::true_type {};
 
 template <typename F>
 class OnDestroy {

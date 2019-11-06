@@ -85,6 +85,29 @@ class Sha1Hasher {
     }
   }
 
+  static bool objectsEqual(PyObject* p, PyObject* q) {
+    if (p == q) {
+      // same object, so obviously equal
+      return true;
+    }
+
+    if (Py_TYPE(p) != Py_TYPE(q)) {
+      // different types, objects can't be equal
+      return false;
+    }
+
+    if (PyUnicode_Check(p) || PyLong_Check(p) || PyFloat_Check(p) ||
+        PyTuple_Check(p)) {
+      // the objects are of an immutable builtin type for which we check
+      // the contents
+      return Sha1Hasher()(p).final() == Sha1Hasher()(q).final();
+    }
+
+    // ...for all other types we require object identity, and we checked for
+    // that already at the top.
+    return false;
+  }
+
  private:
   EVP_MD_CTX* ctx_;
 };

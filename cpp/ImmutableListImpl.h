@@ -252,7 +252,7 @@ struct ImmutableList {
 
     for (auto const& item : vec) {
       if (item.value.get() == value ||
-          PyObject_RichCompareBool(item.value.get(), value, Py_EQ)) {
+          Sha1Hasher::objectsEqual(item.value.get(), value)) {
         ++count;
       }
     }
@@ -263,7 +263,7 @@ struct ImmutableList {
   int contains(PyObject* value) noexcept {
     for (auto const& item : vec) {
       if (item.value.get() == value ||
-          PyObject_RichCompareBool(item.value.get(), value, Py_EQ)) {
+          Sha1Hasher::objectsEqual(item.value.get(), value)) {
         return 1;
       }
     }
@@ -284,7 +284,7 @@ struct ImmutableList {
     for (auto i = start; i < stop; ++i) {
       auto const& item = vec[i];
       if (item.value.get() == value ||
-          PyObject_RichCompareBool(item.value.get(), value, Py_EQ)) {
+          Sha1Hasher::objectsEqual(item.value.get(), value)) {
         return PyObjectRef{PyLong_FromSize_t(i), false};
       }
     }

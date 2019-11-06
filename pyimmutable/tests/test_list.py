@@ -54,7 +54,7 @@ class TestImmutableDict(unittest.TestCase):
         self.assertEqual(il.count(1), 1)
         self.assertEqual(il.count("two"), 2)
         self.assertEqual(il.count(3), 3)
-        self.assertEqual(il.count(3.0), 3)
+        self.assertEqual(il.count(3.0), 0)
 
     def test_index(self):
         with self.assertRaises(ValueError):
@@ -65,7 +65,8 @@ class TestImmutableDict(unittest.TestCase):
             ImmutableList([1, 2, 3]).index(4)
 
         self.assertEqual(ImmutableList([1, 2, 3, 4]).index(3), 2)
-        self.assertEqual(ImmutableList([1, 2, 3, 4]).index(3.0), 2)
+        with self.assertRaises(ValueError):
+            ImmutableList([1, 2, 3, 4]).index(3.0)
 
 
 if __name__ == "__main__":

@@ -38,7 +38,7 @@ def compile_docstrings():
         write()
 
 
-with open("README.md", "r") as fh:
+with open("README.rst", "r") as fh:
     long_description = fh.read()
 
 setup(
@@ -46,7 +46,7 @@ setup(
     version="0.1.4",
     description="Immutable dict and lists",
     long_description=long_description,
-    long_description_content_type="text/markdown",
+    long_description_content_type="text/x-rst",
     url="https://github.com/spacedentist/pyimmutable",
     download_url=(
         "https://github.com/spacedentist/pyimmutable/archive/v0.1.4.tar.gz"

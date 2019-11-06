@@ -66,6 +66,27 @@ class TestEquality(unittest.TestCase):
         self.assertEqual(d.get(key2), 123)
         self.assertTrue(key1 in d)
         self.assertTrue(key2 in d)
+        self.assertFalse(key1.encode("ascii") in d)
+
+    def test_bytes(self):
+        key1 = b"x" * 10000
+        key2 = b"x" * 9999 + b"x"
+        self.assertTrue(type(key1) is bytes)
+        self.assertTrue(type(key2) is bytes)
+        self.assertEqual(key1, key2)
+
+        if key1 is key2:
+            self.skipTest(
+                "failed to construct two different bytes objects "
+                "with same value"
+            )
+
+        d = ImmutableDict({key1: 123})
+        self.assertEqual(d.get(key1), 123)
+        self.assertEqual(d.get(key2), 123)
+        self.assertTrue(key1 in d)
+        self.assertTrue(key2 in d)
+        self.assertFalse(key1.decode("ascii") in d)
 
 
 if __name__ == "__main__":

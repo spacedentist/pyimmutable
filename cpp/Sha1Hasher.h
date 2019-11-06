@@ -58,6 +58,11 @@ class Sha1Hasher {
       Py_ssize_t len = PyUnicode_GET_LENGTH(obj) * PyUnicode_KIND(obj);
       return (*this)("unc", 3)(static_cast<void const*>(&len), sizeof(len))(
           PyUnicode_DATA(obj), len);
+    } else if (PyBytes_Check(obj)) {
+      char* data = nullptr;
+      Py_ssize_t len = 0;
+      PyBytes_AsStringAndSize(obj, &data, &len);
+      return (*this)("byt", 3)(data, len);
     } else if (PyLong_Check(obj)) {
       PyLongObject* const lobj = reinterpret_cast<PyLongObject*>(obj);
 

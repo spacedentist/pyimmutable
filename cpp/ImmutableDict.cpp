@@ -47,7 +47,7 @@ This is mainly useful for the ``ImmutableDict`` test suite.
 
 static PyObject *
 _pyimmutable_ImmutableDict__get_instance_count_impl()
-/*[clinic end generated code: output=45dc5aa5edf23f57 input=4a864a44091565e6]*/
+/*[clinic end generated code: output=45dc5aa5edf23f57 input=81f4677b9275070d]*/
 // clang-format on
 {
   return PyLong_FromSize_t(
@@ -70,7 +70,7 @@ Returns ``self`` if ``key`` is not present.
 static PyObject *
 _pyimmutable_ImmutableDict_discard(pyimmutable::ImmutableDict::Wrapper*self,
                                    PyObject *key)
-/*[clinic end generated code: output=2a4db12ba8233045 input=f7a60355bc6f0c32]*/
+/*[clinic end generated code: output=2a4db12ba8233045 input=063b0b025a515674]*/
 // clang-format on
 {
   return self->discard<false>(key).release();
@@ -91,7 +91,7 @@ Return the value for ``key`` if ``key`` is in the dictionary, else ``default``.
 static PyObject *
 _pyimmutable_ImmutableDict_get_impl(pyimmutable::ImmutableDict::Wrapper*self,
                                     PyObject *key, PyObject *default_value)
-/*[clinic end generated code: output=8a0c1ef395aef988 input=044299bfb3941a78]*/
+/*[clinic end generated code: output=8a0c1ef395aef988 input=b05d2bf759106bff]*/
 // clang-format on
 {
   return self->get(key, default_value).release();
@@ -107,7 +107,7 @@ Return an iterator over ``(key, value)`` tuples.
 
 static PyObject *
 _pyimmutable_ImmutableDict_items_impl(pyimmutable::ImmutableDict::Wrapper*self)
-/*[clinic end generated code: output=6f9b02a2729638f8 input=0f34e5b00f40bbd3]*/
+/*[clinic end generated code: output=6f9b02a2729638f8 input=95ca2d682c1938f6]*/
 // clang-format on
 {
   return self->items().release();
@@ -123,7 +123,7 @@ Return an iterator over the keys in this ``ImmutableDict``.
 
 static PyObject *
 _pyimmutable_ImmutableDict_keys_impl(pyimmutable::ImmutableDict::Wrapper*self)
-/*[clinic end generated code: output=e298b2af41db2ba4 input=73a6509ff9abe1cd]*/
+/*[clinic end generated code: output=e298b2af41db2ba4 input=6ee4186b13a38107]*/
 // clang-format on
 {
   return self->keys().release();
@@ -145,7 +145,7 @@ Raises ``KeyError`` if ``key`` is not present.
 static PyObject *
 _pyimmutable_ImmutableDict_pop(pyimmutable::ImmutableDict::Wrapper*self,
                                PyObject *key)
-/*[clinic end generated code: output=9a33828a75be1663 input=25ce9604efa6dc98]*/
+/*[clinic end generated code: output=9a33828a75be1663 input=89e6177b8b3b7eb9]*/
 // clang-format on
 {
   return self->discard<true>(key).release();
@@ -166,7 +166,7 @@ Return a copy with ``key`` set to ``value``.
 static PyObject *
 _pyimmutable_ImmutableDict_set_impl(pyimmutable::ImmutableDict::Wrapper*self,
                                     PyObject *key, PyObject *value)
-/*[clinic end generated code: output=74f7aaabb0dbe898 input=182db1d3c673689a]*/
+/*[clinic end generated code: output=74f7aaabb0dbe898 input=5bdbd57d2bf275df]*/
 // clang-format on
 {
   return self->set(key, value).release();
@@ -182,7 +182,7 @@ Return an iterator over the values in this ``ImmutableDict``.
 
 static PyObject *
 _pyimmutable_ImmutableDict_values_impl(pyimmutable::ImmutableDict::Wrapper*self)
-/*[clinic end generated code: output=5d686debdb9abe8c input=56d7ea1539b6dc21]*/
+/*[clinic end generated code: output=5d686debdb9abe8c input=58a9e1a9ead998ea]*/
 // clang-format on
 {
   return self->values().release();

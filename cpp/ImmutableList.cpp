@@ -44,7 +44,7 @@ Return a reverse iterator over the ``ImmutableList``.
 
 static PyObject *
 _pyimmutable_ImmutableList___reversed___impl(pyimmutable::ImmutableList::Wrapper*self)
-/*[clinic end generated code: output=fa12047ef068bd1e input=ca816d9065bf24df]*/
+/*[clinic end generated code: output=fa12047ef068bd1e input=de8c73049d0a0c2a]*/
 // clang-format on
 {
   return self->iterImpl(/* reversed= */ true).release();
@@ -63,7 +63,7 @@ This is mainly useful for the ``ImmutableList`` test suite.
 
 static PyObject *
 _pyimmutable_ImmutableList__get_instance_count_impl()
-/*[clinic end generated code: output=e92bd248dadeb452 input=9aa52ae91938fad8]*/
+/*[clinic end generated code: output=e92bd248dadeb452 input=1f4921432c929bd5]*/
 // clang-format on
 {
   return PyLong_FromSize_t(
@@ -84,7 +84,7 @@ Return a copy with the given ``value`` appended.
 static PyObject *
 _pyimmutable_ImmutableList_append(pyimmutable::ImmutableList::Wrapper*self,
                                   PyObject *value)
-/*[clinic end generated code: output=4425aa537f38ab23 input=5da2cb85636dd569]*/
+/*[clinic end generated code: output=4425aa537f38ab23 input=fea20c3dcce6e1c0]*/
 // clang-format on
 {
   return self->append(value).release();
@@ -104,7 +104,7 @@ Return number of occurrences of ``value``.
 static PyObject *
 _pyimmutable_ImmutableList_count(pyimmutable::ImmutableList::Wrapper*self,
                                  PyObject *value)
-/*[clinic end generated code: output=5a7032a195a41b7e input=4b6d439f609c0748]*/
+/*[clinic end generated code: output=5a7032a195a41b7e input=227578d2726fd874]*/
 // clang-format on
 {
   return self->count(value).release();
@@ -124,7 +124,7 @@ Return a copy extended by appending elements from ``iterable``.
 static PyObject *
 _pyimmutable_ImmutableList_extend(pyimmutable::ImmutableList::Wrapper*self,
                                   PyObject *iterable)
-/*[clinic end generated code: output=971548392eacf921 input=3b62b7049711260c]*/
+/*[clinic end generated code: output=971548392eacf921 input=39a19f465c41b22d]*/
 // clang-format on
 {
   return self->extend(iterable).release();
@@ -149,7 +149,7 @@ static PyObject *
 _pyimmutable_ImmutableList_index_impl(pyimmutable::ImmutableList::Wrapper*self,
                                       PyObject *value, Py_ssize_t start,
                                       Py_ssize_t stop)
-/*[clinic end generated code: output=fcfe7d0636c70cb9 input=f7f22072ae2c7234]*/
+/*[clinic end generated code: output=fcfe7d0636c70cb9 input=beec301344457788]*/
 // clang-format on
 {
   return self->index(value, start, stop).release();
@@ -172,7 +172,7 @@ Raises ``IndexError`` if ``index`` is outside the range of existing elements.
 static PyObject *
 _pyimmutable_ImmutableList_set_impl(pyimmutable::ImmutableList::Wrapper*self,
                                     Py_ssize_t index, PyObject *value)
-/*[clinic end generated code: output=34a51ab604f23326 input=05dd7ed63eac2032]*/
+/*[clinic end generated code: output=34a51ab604f23326 input=aa292f72b6c2836b]*/
 // clang-format on
 {
   return self->set(index, value).release();

@@ -136,8 +136,8 @@ _pyimmutable_ImmutableList_extend(pyimmutable::ImmutableList::Wrapper*self,
 _pyimmutable.ImmutableList.index
 
   value: object
-  start: Py_ssize_t = 0
-  stop: Py_ssize_t(c_default="PY_SSIZE_T_MAX - 1") = sys.maxsize - 1
+  start: slice_index(accept={int}) = 0
+  stop: slice_index(accept={int}, c_default="PY_SSIZE_T_MAX") = sys.maxsize
   /
 
 Return first index of ``value``.

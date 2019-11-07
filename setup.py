@@ -79,8 +79,12 @@ setup(
             ],
             language="c++",
             include_dirs=["lib/immer"],
-            libraries=["ssl", "crypto"],
             extra_compile_args=["-std=c++17"],
+            extra_link_args=[
+                "-static-libgcc",
+                "-static-libstdc++",
+                "-Wl,--strip-all",
+            ],
         )
     ],
     classifiers=[

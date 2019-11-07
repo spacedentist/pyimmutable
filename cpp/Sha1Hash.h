@@ -24,12 +24,11 @@
 
 #pragma once
 
-#include <array>
+#include "Sha1.h"
 
 namespace pyimmutable {
 
-inline constexpr std::size_t kHashSize = 20;
-using Sha1Hash = std::array<unsigned char, kHashSize>;
+using Sha1Hash = sha1::Hash;
 
 struct Sha1HashHasher {
   std::size_t operator()(Sha1Hash const& h) const {
@@ -39,8 +38,8 @@ struct Sha1HashHasher {
 
 inline Sha1Hash&
 xorHashInPlace(Sha1Hash& h1, Sha1Hash const& h2, unsigned int shift = 0) {
-  for (std::size_t i = 0; i < kHashSize; ++i) {
-    h1[i] ^= h2[(i + shift) % kHashSize];
+  for (std::size_t i = 0; i < sha1::kHashSize; ++i) {
+    h1[i] ^= h2[(i + shift) % sha1::kHashSize];
   }
 
   return h1;

@@ -24,35 +24,17 @@
 
 #pragma once
 
-#include <openssl/evp.h>
-
 #include "Sha1Hash.h"
 
 namespace pyimmutable {
 
-class Sha1Hasher {
+class Sha1Hasher : public sha1::Context {
  public:
-  Sha1Hasher() : ctx_(EVP_MD_CTX_new()) {
-    EVP_DigestInit_ex(ctx_, EVP_sha1(), nullptr);
-  }
-
-  ~Sha1Hasher() {
-    EVP_MD_CTX_free(ctx_);
-  }
-
-  Sha1Hasher(Sha1Hasher const& other) : Sha1Hasher() {
-    EVP_MD_CTX_copy_ex(ctx_, other.ctx_);
-  }
-
-  Sha1Hash final() {
-    Sha1Hash result;
-    EVP_DigestFinal_ex(ctx_, result.data(), nullptr);
-    return result;
-  }
   Sha1Hasher& operator()(void const* data, std::size_t len) {
-    EVP_DigestUpdate(ctx_, data, len);
+    sha1::Context::operator()(data, len);
     return *this;
   }
+
   Sha1Hasher& operator()(PyObject* obj) {
     if (PyUnicode_Check(obj)) {
       Py_ssize_t len = PyUnicode_GET_LENGTH(obj) * PyUnicode_KIND(obj);
@@ -112,9 +94,6 @@ class Sha1Hasher {
     // that already at the top.
     return false;
   }
-
- private:
-  EVP_MD_CTX* ctx_;
 };
 
 inline std::pair<Sha1Hash, Sha1Hash> keyValueHashes(

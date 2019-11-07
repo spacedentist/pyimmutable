@@ -97,10 +97,10 @@ struct ImmutableDict {
   static constexpr bool weakrefs_enabled = true;
   static constexpr bool sha1_lookup_enabled = true;
 
-  MapType const map_;
+  MapType map_;
   Sha1Hash const sha1;
-  std::size_t immutableJsonItems;
-  bool isImmutableJson;
+  std::size_t const immutableJsonItems;
+  bool const isImmutableJson;
   PyObjectRef meta_;
 
   ImmutableDict(MapType&& mapx, Sha1Hash sha1, std::size_t immutable_json_items)

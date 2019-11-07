@@ -85,8 +85,8 @@ struct ImmutableList {
 
   VectorType vec;
   Sha1Hash const sha1;
-  std::size_t immutableJsonItems;
-  bool isImmutableJson;
+  std::size_t const immutableJsonItems;
+  bool const isImmutableJson;
   PyObjectRef meta_;
 
   ImmutableList(

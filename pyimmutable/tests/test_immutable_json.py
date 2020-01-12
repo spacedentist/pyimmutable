@@ -42,6 +42,19 @@ class TestImmutableDict(unittest.TestCase):
         ch.addImmutable(
             ImmutableDict({"a": 1, "b": 2, True: 123}).discard(True)
         )
+        ch.addImmutable(
+            ImmutableDict({"a": 1, "b": 2, "c": 3, "d": 4})
+            .set("e", 5)
+            .set("d", 7)
+        )
+        ch.addNonImmutable(
+            ImmutableDict({"a": 1, "b": 2, "c": 3, "d": 4})
+            .set("d", Exception())
+            .set("e", 5)
+        )
+        ch.addImmutable(
+            ImmutableDict({"a": 1, "b": 2, "c": 3}).update(b=2, c=4)
+        )
 
         ch.check_all()
 

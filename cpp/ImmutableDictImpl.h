@@ -441,6 +441,9 @@ struct ImmutableDict {
       }
 
       xorHashInPlace(hash, ptr->valueHash);
+      if (ptr->isImmutableJson) {
+        --immutable_json_items;
+      }
     }
 
     xorHashInPlace(hash, hvalue);

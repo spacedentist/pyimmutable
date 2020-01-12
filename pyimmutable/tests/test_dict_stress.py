@@ -38,7 +38,7 @@ class StressTestImmutableDict(unittest.TestCase):
             idx = random.randrange(0, len(dicts))
             idict, pydict = dicts[idx]
 
-            action = random.randint(0, 1)
+            action = random.randint(0, 2)
             if action == 0:
                 key, value = random.choice(objects), random.choice(objects)
                 idict = idict.set(key, value)
@@ -47,6 +47,13 @@ class StressTestImmutableDict(unittest.TestCase):
                 key = random.choice(objects)
                 idict = idict.discard(key)
                 pydict.pop(key, None)
+            elif action == 2:
+                update = {
+                    random.choice(objects): random.choice(objects)
+                    for i in range(random.randint(0, 5))
+                }
+                idict = idict.update(update)
+                pydict.update(update)
 
             dicts[idx] = idict, pydict
 
